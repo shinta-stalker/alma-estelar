@@ -70,7 +70,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
 }
 .perg-parallax{will-change:transform;transition:transform .12s ease-out}
 
-/* Panel de cristal */
 .perg-wrap{
   position:relative;width:min(700px,92vw);
   background:rgba(10,5,20,0.7);
@@ -211,6 +210,54 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
 #b-rosa{height:100%;background:#f472b6;box-shadow:0 0 20px #f472b6,0 0 40px rgba(244,114,182,.8);transition:width 1.5s ease}
 .votos-txt{display:flex;justify-content:space-between;font-size:11pt;margin-top:10px;color:rgba(212,175,55,.8);font-family:'Cinzel',serif;letter-spacing:2px;font-weight:bold;text-shadow: 0 0 10px rgba(0,0,0,0.8);}
 
+.btn-ecos {
+  margin-top: 20px; background: transparent; border: 1px solid rgba(212,175,55,0.4);
+  color: #d4af37; font-family: 'Cinzel', serif; font-size: 9pt; padding: 10px 20px;
+  border-radius: 8px; cursor: pointer; transition: 0.3s; letter-spacing: 2px; font-weight: bold;
+}
+.btn-ecos:hover { background: rgba(212,175,55,0.1); box-shadow: 0 0 20px rgba(212,175,55,0.4); color: #fff; }
+
+/* ═══ MODAL ECOS DEL ORÁCULO ═══ */
+#modal-ecos {
+  position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center;
+  background: rgba(3,1,10,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+}
+#modal-ecos.visible { opacity: 1; pointer-events: auto; }
+.modal-cristal {
+  background: rgba(10,5,20,0.8); border: 1px solid rgba(212,175,55,0.5);
+  border-radius: 24px; padding: 35px 30px; width: min(450px, 90vw); max-height: 75vh;
+  display: flex; flex-direction: column; text-align: center;
+  box-shadow: 0 0 80px rgba(0,0,0,0.9), inset 0 0 30px rgba(212,175,55,0.2);
+  transform: translateY(30px); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#modal-ecos.visible .modal-cristal { transform: translateY(0); }
+.modal-titulo { font-family: 'Cinzel Decorative', serif; color: #f7e47a; font-size: clamp(16pt, 3vw, 20pt); margin-bottom: 5px; text-shadow: 0 0 20px rgba(212,175,55,0.8); letter-spacing: 3px; }
+.modal-sub { font-family: 'IM Fell English', serif; font-style: italic; font-size: 13pt; color: rgba(212,175,55,0.8); margin-bottom: 25px; }
+#lista-ecos {
+  flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+  padding-right: 8px; margin-bottom: 25px;
+  scrollbar-width: thin; scrollbar-color: rgba(212,175,55,0.5) transparent;
+}
+#lista-ecos::-webkit-scrollbar { width: 6px; }
+#lista-ecos::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.5); border-radius: 3px; }
+
+.eco-item {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(255,255,255,0.04); padding: 14px 20px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1); font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 2px; font-size: 11pt;
+}
+.eco-nino { color: #4fc3f7; text-shadow: 0 0 15px rgba(79,195,247,0.6); border-color: rgba(79,195,247,0.3); background: rgba(79,195,247,0.05); }
+.eco-nina { color: #f472b6; text-shadow: 0 0 15px rgba(244,114,182,0.6); border-color: rgba(244,114,182,0.3); background: rgba(244,114,182,0.05); }
+
+.btn-cerrar {
+  background: linear-gradient(145deg, rgba(212,175,55,0.2), rgba(0,0,0,0.6));
+  border: 1px solid rgba(212,175,55,0.6); color: #fff; padding: 12px; border-radius: 10px;
+  font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 2px; cursor: pointer; transition: 0.3s;
+}
+.btn-cerrar:hover { background: rgba(212,175,55,0.4); box-shadow: 0 0 30px rgba(212,175,55,0.5); }
+
+
 /* ═══ REVELACIÓN ═══ */
 #revc{display:none;margin-top:20px}
 #revc h1{
@@ -287,7 +334,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
     <div id="reloj">Invocando…</div>
     <div class="barra-wrap"><div id="b-azul" style="width:50%"></div><div id="b-rosa" style="width:50%"></div></div>
     <div class="votos-txt"><span id="vt-azul">🌊 0</span><span id="vt-rosa">0 🌸</span></div>
+    
+    <button class="btn-ecos" onclick="abrirEcos()">✦ Leer los Ecos del Oráculo ✦</button>
+    
     <div id="revc"></div>
+  </div>
+</div>
+
+<div id="modal-ecos">
+  <div class="modal-cristal">
+    <h3 class="modal-titulo">Las Voces del Destino</h3>
+    <p class="modal-sub">Familiares que han vertido su magia</p>
+    <div id="lista-ecos">
+      </div>
+    <button class="btn-cerrar" onclick="cerrarEcos()">Ocultar Ecos</button>
   </div>
 </div>
 
@@ -353,8 +413,8 @@ function spDust(){
   p.on=true;p.type='d';
   p.x=Math.random()*W;p.y=H+10;
   p.vx=(Math.random()-.5)*1.2;p.vy=-(0.8+Math.random()*1.5);
-  p.r=1.5+Math.random()*4.0; // Partículas más grandes
-  p.cr=255;p.cg=200+Math.random()*55|0;p.cb=100+Math.random()*100|0; // Más brillantes
+  p.r=1.5+Math.random()*4.0; 
+  p.cr=255;p.cg=200+Math.random()*55|0;p.cb=100+Math.random()*100|0; 
   p.ml=p.life=150+Math.random()*230;
 }
 function spWisp(){
@@ -373,7 +433,7 @@ function spBurst(x,y,cr,cg,cb,n=100,spd=1){
     const p=FREE();if(!p)continue;
     p.on=true;p.type='b';
     p.x=x+(Math.random()-.5)*16;p.y=y+(Math.random()-.5)*16;
-    const a=Math.random()*Math.PI*2,s=(.8+Math.random()*4.5)*spd; // Explosión más fuerte
+    const a=Math.random()*Math.PI*2,s=(.8+Math.random()*4.5)*spd; 
     p.vx=Math.cos(a)*s;p.vy=Math.sin(a)*s-.5;
     p.r=3+Math.random()*12;
     p.cr=cr;p.cg=cg;p.cb=cb;
@@ -409,7 +469,7 @@ function spIntroSpark(){
   p.on=true;p.type='i';
   p.x=Math.random()*W;p.y=Math.random()*H;
   p.vx=(Math.random()-.5)*.5;p.vy=-.2-Math.random()*.6;
-  p.r=2.5+Math.random()*7.5; // Más grandes en intro
+  p.r=2.5+Math.random()*7.5; 
   const gold=Math.random()>.4;
   p.cr=gold?255:180+Math.random()*75|0;
   p.cg=gold?230+Math.random()*25|0:100+Math.random()*80|0;
@@ -422,7 +482,7 @@ function glow(x,y,r,cr,cg,cb,a){
   ctx.save();ctx.globalCompositeOperation='lighter';
   const g=ctx.createRadialGradient(x,y,0,x,y,r);
   g.addColorStop(0,`rgba(${cr},${cg},${cb},${a})`);
-  g.addColorStop(.38,`rgba(${cr},${cg},${cb},${a*.5})`); // Más brillo intermedio
+  g.addColorStop(.38,`rgba(${cr},${cg},${cb},${a*.5})`); 
   g.addColorStop(1,`rgba(${cr},${cg},${cb},0)`);
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
   ctx.restore();
@@ -459,14 +519,13 @@ function drawBolt(){
   }
 }
 
-/* ─ SHOOTING STARS (NUEVO SISTEMA MULTIPLE MEJORADO) ─ */
 let stars=[];
 function newStar(){
   const left=Math.random()>.5;
   const sx=left?-80:W+80;
   const sy=Math.random()*H*0.4; 
-  const vx=(left?1:-1)*(15+Math.random()*20); // Muy rápidas
-  const vy=2+Math.random()*8; // Pueden caer más pronunciado
+  const vx=(left?1:-1)*(15+Math.random()*20); 
+  const vy=2+Math.random()*8; 
   stars.push({x:sx,y:sy,vx,vy,a:1,trail:[]});
 }
 
@@ -558,7 +617,7 @@ function render(){
       shock(CX(),CY(),bCR,bCG,bCB,false);
       V.flashA=.9;V.flashCR=bCR;V.flashCG=bCG;V.flashCB=bCB;
       V.tintA=.8;V.tintCR=bCR;V.tintCG=bCG;V.tintCB=bCB;
-      baseTintA = 0.25; // VELO PERSISTENTE FUERTE DESPUÉS DE VOTAR
+      baseTintA = 0.25; 
     }
   }
 
@@ -585,7 +644,7 @@ function render(){
       ctx.fillStyle=`rgba(${p.cr},${p.cg},${p.cb},${pf*twk*.95})`;
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
       ctx.restore();
-      if(p.r>1.5) glow(p.x,p.y,p.r*5,p.cr,p.cg,p.cb,pf*twk*.4); // Brillo expandido
+      if(p.r>1.5) glow(p.x,p.y,p.r*5,p.cr,p.cg,p.cb,pf*twk*.4); 
     }
     else if(p.type==='w'){
       p.x+=p.vx;p.y+=p.vy;
@@ -636,7 +695,6 @@ function render(){
     ctx.fillRect(0,0,W,H);ctx.restore();
   }
   
-  /* ── TINTE (VELO PERSISTENTE) ── */
   if(V.tintA > baseTintA){
     V.tintA = Math.max(baseTintA, V.tintA-.01);
   }
@@ -655,32 +713,28 @@ function render(){
     ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);ctx.restore();
   }
 
-  /* ── NUEVAS ESTRELLAS FUGACES MASIVAS ── */
   for(let i=stars.length-1; i>=0; i--){
     let st=stars[i];
     st.trail.push({x:st.x,y:st.y});
-    if(st.trail.length>70)st.trail.shift(); // Estela aún más larga
-    st.x+=st.vx;st.y+=st.vy;st.a-=.006; // Duran más
+    if(st.trail.length>70)st.trail.shift(); 
+    st.x+=st.vx;st.y+=st.vy;st.a-=.006; 
     ctx.save();ctx.globalCompositeOperation='lighter';
     for(let j=0;j<st.trail.length;j++){
       const t=j/st.trail.length;
       ctx.fillStyle=`rgba(255,250,220,${t*st.a*1.2})`;
       ctx.beginPath();ctx.arc(st.trail[j].x,st.trail[j].y,5.5*t,0,Math.PI*2);ctx.fill();
     }
-    glow(st.x,st.y,45,255,250,220,st.a*1.0); // Destello potente en la cabeza
+    glow(st.x,st.y,45,255,250,220,st.a*1.0); 
     ctx.restore();
     if(st.x<-150||st.x>W+150||st.y>H+150||st.a<=0)stars.splice(i,1);
   }
 
   const dc=pool.filter(p=>p.on&&p.type==='d').length;
-  if(dc<200)spDust(); // Más polvo
+  if(dc<200)spDust(); 
   if(frame%150===0&&pool.filter(p=>p.on&&p.type==='w').length<12)spWisp();
-  if(frame%60===0)newStar(); // Estrellas fugaces salen mucho más seguido
+  if(frame%60===0)newStar(); 
 }
 
-/* ════════════════════════════════════════════════
-   INTRO RENDER
-════════════════════════════════════════════════ */
 function renderIntro(){
   glow(CX(),CY()+H*.02,Math.min(W,H)*.55,140,60,255,.35+.1*Math.sin(frame*.025));
   glow(CX(),CY()+H*.02,Math.min(W,H)*.28,212,175,55,.3+.12*Math.sin(frame*.035));
@@ -691,7 +745,7 @@ function renderIntro(){
     const pf=p.life/p.ml;
     if(p.life<=0||p.y<-20){p.on=false;return;}
     const twk=.6+.4*Math.sin(frame*.1+p.x*.03);
-    glow(p.x,p.y,p.r*4,p.cr,p.cg,p.cb,pf*twk*.65); // Más glow
+    glow(p.x,p.y,p.r*4,p.cr,p.cg,p.cb,pf*twk*.65); 
     ctx.save();ctx.globalCompositeOperation='lighter';
     ctx.fillStyle=`rgba(${p.cr},${p.cg},${p.cb},${pf*twk*1.0})`;
     ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
@@ -827,7 +881,7 @@ db.ref('config/revelacion').on('value',snap=>{
     const d=ft-Date.now();
     if(d<=0){
       clearInterval(iv);
-      el.textContent='✦ LA PÁGINA SE HA REVELADO ✦';
+      el.textContent='✦ EL PORTAL SE ABRIÓ ✦';
       doReveal(cfg.sexoReal);
     }
     else{
@@ -838,13 +892,13 @@ db.ref('config/revelacion').on('value',snap=>{
   },1000);
 });
 
-// RESTAURAR ESTADO SI YA VOTÓ (VELO Y AUDIO)
+// RESTAURAR ESTADO SI YA VOTÓ
 if(localStorage.getItem('votoEstelar')){
   window.addEventListener('DOMContentLoaded',()=>{
     const tipo = localStorage.getItem('votoEstelar');
     const isN = tipo==='nino';
     V.tintCR = isN?79:244; V.tintCG = isN?195:114; V.tintCB = isN?247:182;
-    V.tintA = baseTintA = 0.25; // VELO PERSISTENTE INTENSO AL RECARGAR
+    V.tintA = baseTintA = 0.25; 
 
     document.getElementById('intro').style.display='none';
     phase='main';
@@ -852,15 +906,50 @@ if(localStorage.getItem('votoEstelar')){
     document.getElementById('panel-espera').style.display='block';
     escucharVotos();
 
-    // INTENTO DE REPRODUCIR AUDIO (O ESPERAR AL PRIMER CLIC)
     const bgm = document.getElementById('bgm');
     bgm.volume = 0.38;
     bgm.play().catch(() => {
-        // Si el navegador bloquea el autoplay, se reproducirá al primer toque en la pantalla
         window.addEventListener('click', () => bgm.play(), {once: true});
         window.addEventListener('touchstart', () => bgm.play(), {once: true});
     });
   });
+}
+
+/* ════════════════════════════════════════════════
+   NUEVAS FUNCIONES: ECOS DEL ORÁCULO
+════════════════════════════════════════════════ */
+function abrirEcos() {
+  document.getElementById('modal-ecos').classList.add('visible');
+  
+  db.ref('registro_votos').on('value', snap => {
+    const lista = document.getElementById('lista-ecos');
+    lista.innerHTML = '';
+    const datos = snap.val();
+    
+    if(!datos) {
+      lista.innerHTML = '<p style="color:rgba(212,175,55,0.6); font-family:\'IM Fell English\'; font-style:italic;">El oráculo aún aguarda en silencio...</p>';
+      return;
+    }
+
+    // Convertir a array y mostrar los más recientes arriba
+    const votos = Object.values(datos).reverse();
+    
+    votos.forEach(v => {
+      const div = document.createElement('div');
+      const isNino = v.pocion === 'nino';
+      div.className = `eco-item ${isNino ? 'eco-nino' : 'eco-nina'}`;
+      
+      div.innerHTML = `
+        <span>${v.familiar}</span>
+        <span>${isNino ? '🌊 Guardián' : '🌸 Protectora'}</span>
+      `;
+      lista.appendChild(div);
+    });
+  });
+}
+
+function cerrarEcos() {
+  document.getElementById('modal-ecos').classList.remove('visible');
 }
 
 function lerp(a,b,t){return a+(b-a)*t;}
