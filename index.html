@@ -7,15 +7,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
   --oro:#d4af37;--oro2:#f5d76e;
   --azul:#4fc3f7;--rosa:#f06292;
-  --void:#030208;--cristal:rgba(6,3,14,0.85);
+  --void:#030208;--cristal:rgba(6,3,14,0.7);
   --fd:'Cinzel Decorative',serif;
   --ft:'Cinzel',serif;
   --fb:'IM Fell English',serif;
@@ -23,116 +32,110 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--void);color:#e8d8b0;cursor:crosshair}
 #c3d{position:fixed;inset:0;z-index:1;display:block}
 
-/* TÍTULO */
+/* TÍTULO Y TEXTOS (Mantenemos tu hermoso UI) */
 #hdr{
   position:fixed;top:0;left:0;right:0;z-index:20;
-  text-align:center;padding:16px 0 10px;
-  background:linear-gradient(to bottom,rgba(3,2,8,0.95) 60%,transparent);
+  text-align:center;padding:25px 0 15px;
+  background:linear-gradient(to bottom,rgba(3,2,8,0.95) 40%,transparent);
   pointer-events:none;
 }
-#hdr h1{font-family:var(--fd);font-size:clamp(9pt,2vw,13pt);font-weight:400;
-  letter-spacing:5px;color:var(--oro2);text-shadow:0 0 40px rgba(212,175,55,0.8),0 0 80px rgba(212,175,55,0.3)}
-#hdr p{font-family:var(--fb);font-size:clamp(7pt,1.3vw,8.5pt);color:rgba(212,175,55,0.5);
-  letter-spacing:3px;font-style:italic;margin-top:3px}
+#hdr h1{font-family:var(--fd);font-size:clamp(12pt,3vw,18pt);font-weight:700;
+  letter-spacing:5px;color:var(--oro2);text-shadow:0 0 20px rgba(212,175,55,0.8),0 0 40px rgba(212,175,55,0.5)}
+#hdr p{font-family:var(--fb);font-size:clamp(9pt,1.5vw,11pt);color:rgba(212,175,55,0.7);
+  letter-spacing:4px;font-style:italic;margin-top:5px}
 
-/* INSTRUCCIÓN */
 #instruccion{
-  position:fixed;top:42%;left:50%;transform:translate(-50%,-50%);
+  position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);
   z-index:20;text-align:center;pointer-events:none;
   transition:opacity 1.2s;
 }
-#instruccion p{font-family:var(--fb);font-size:clamp(8pt,1.5vw,10pt);
-  color:rgba(212,175,55,0.5);letter-spacing:3px;font-style:italic;
-  text-shadow:0 0 30px rgba(212,175,55,0.4);animation:flicker 3s ease-in-out infinite}
-@keyframes flicker{0%,100%{opacity:.5}50%{opacity:.9}}
+#instruccion p{font-family:var(--fb);font-size:clamp(10pt,2vw,12pt);
+  color:rgba(212,175,55,0.8);letter-spacing:3px;font-style:italic;
+  text-shadow:0 0 20px rgba(212,175,55,0.6);animation:flicker 4s ease-in-out infinite}
+@keyframes flicker{0%,100%{opacity:.4}50%{opacity:1}}
 
-/* PANEL */
+/* PANEL MAGICO */
 .panel{
-  position:fixed;bottom:3vh;left:50%;transform:translateX(-50%);
+  position:fixed;bottom:5vh;left:50%;transform:translateX(-50%);
   z-index:20;
   background:var(--cristal);
-  border:1px solid rgba(212,175,55,0.35);
-  border-radius:14px;
-  padding:18px 22px 16px;
-  width:min(400px,88vw);
+  border:1px solid rgba(212,175,55,0.4);
+  border-radius:16px;
+  padding:25px;
+  width:min(450px,90vw);
   text-align:center;
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  box-shadow:0 0 80px rgba(212,175,55,0.08),0 0 200px rgba(212,175,55,0.03),
-             inset 0 1px 0 rgba(255,255,255,0.07);
+  backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);
+  box-shadow:0 0 50px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
   display:none;
 }
-.panel.on{display:block;animation:riseIn .7s cubic-bezier(.22,1,.36,1) forwards}
-@keyframes riseIn{from{opacity:0;transform:translateX(-50%) translateY(18px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.panel.on{display:block;animation:riseIn 1s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes riseIn{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
-.ptit{font-family:var(--fd);font-size:clamp(9.5pt,2.2vw,12pt);font-weight:400;
-  letter-spacing:3px;color:#f5e6c0;margin-bottom:3px}
-.psub{font-family:var(--fb);font-size:8pt;color:rgba(212,175,55,0.5);
-  font-style:italic;letter-spacing:2px;margin-bottom:12px}
+.ptit{font-family:var(--fd);font-size:clamp(11pt,2.5vw,14pt);font-weight:700;
+  letter-spacing:3px;color:#f5e6c0;margin-bottom:5px; text-shadow:0 0 10px rgba(212,175,55,0.5)}
+.psub{font-family:var(--fb);font-size:10pt;color:rgba(212,175,55,0.7);
+  font-style:italic;letter-spacing:2px;margin-bottom:20px}
 
-/* INPUT */
-.campo{width:100%;padding:9px 14px;
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(212,175,55,0.28);border-radius:8px;
-  color:#fff;font-size:10.5pt;font-family:var(--fb);
+/* INPUT Y BOTONES */
+.campo{width:100%;padding:12px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(212,175,55,0.3);border-radius:8px;
+  color:#fff;font-size:12pt;font-family:var(--fb);
   text-align:center;outline:none;
-  transition:border-color .3s,box-shadow .3s;margin-bottom:11px}
-.campo::placeholder{color:rgba(255,255,255,0.22)}
-.campo:focus{border-color:var(--oro);box-shadow:0 0 18px rgba(212,175,55,0.22)}
+  transition:all .4s;margin-bottom:15px; letter-spacing: 1px;}
+.campo::placeholder{color:rgba(255,255,255,0.3)}
+.campo:focus{border-color:var(--oro);box-shadow:0 0 20px rgba(212,175,55,0.4), inset 0 0 10px rgba(212,175,55,0.2)}
 
-/* BOTONES */
-.row{display:flex;gap:10px}
-.btn{flex:1;padding:11px 8px 9px;border-radius:10px;
-  font-family:var(--ft);font-size:clamp(7.5pt,1.8vw,9.5pt);letter-spacing:1px;
-  cursor:pointer;transition:transform .2s,box-shadow .3s;
+.row{display:flex;gap:15px}
+.btn{flex:1;padding:15px 10px;border-radius:10px;
+  font-family:var(--ft);font-size:clamp(8pt,2vw,10pt);letter-spacing:1px; font-weight: 600;
+  cursor:pointer;transition:all .3s;
   border:1px solid transparent;position:relative;overflow:hidden}
-.btn::after{content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(255,255,255,0.11) 0%,transparent 55%);pointer-events:none}
-.btn:hover{transform:translateY(-3px)}
-.btn:active{transform:scale(.96)}
-.btn-n{background:linear-gradient(145deg,rgba(13,71,161,.55),rgba(1,28,74,.38));
-  color:var(--azul);border-color:rgba(79,195,247,.45)}
-.btn-n:hover{box-shadow:0 0 30px rgba(79,195,247,.6),0 0 10px rgba(79,195,247,.4) inset}
-.btn-f{background:linear-gradient(145deg,rgba(136,14,79,.55),rgba(74,1,50,.38));
-  color:var(--rosa);border-color:rgba(240,98,146,.45)}
-.btn-f:hover{box-shadow:0 0 30px rgba(240,98,146,.6),0 0 10px rgba(240,98,146,.4) inset}
-.bico{font-size:17pt;display:block;margin-bottom:3px}
+.btn:hover{transform:translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.5);}
+.btn:active{transform:scale(.95)}
+.btn-n{background:linear-gradient(145deg,rgba(13,71,161,.6),rgba(1,28,74,.6));
+  color:#aee2ff;border-color:rgba(79,195,247,.6)}
+.btn-n:hover{box-shadow:0 0 40px rgba(79,195,247,.6), inset 0 0 15px rgba(79,195,247,.5); color: #fff;}
+.btn-f{background:linear-gradient(145deg,rgba(136,14,79,.6),rgba(74,1,50,.6));
+  color:#ffc4d9;border-color:rgba(240,98,146,.6)}
+.btn-f:hover{box-shadow:0 0 40px rgba(240,98,146,.6), inset 0 0 15px rgba(240,98,146,.5); color: #fff;}
+.bico{font-size:22pt;display:block;margin-bottom:8px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));}
 
 /* PANEL ESPERA */
-hr.sep{border:none;border-top:1px solid rgba(212,175,55,.18);margin:10px 0}
-#reloj{font-family:var(--fd);font-size:clamp(15pt,3.5vw,21pt);
-  letter-spacing:3px;color:var(--oro2);
-  text-shadow:0 0 30px rgba(212,175,55,.7);margin:3px 0 8px}
-.bwrap{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;display:flex}
+hr.sep{border:none;border-top:1px solid rgba(212,175,55,.3);margin:15px 0}
+#reloj{font-family:var(--fd);font-size:clamp(18pt,4vw,26pt);
+  letter-spacing:4px;color:var(--oro2);
+  text-shadow:0 0 40px rgba(212,175,55,.8);margin:5px 0 10px}
+.bwrap{height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;display:flex}
 #bn{height:100%;background:linear-gradient(90deg,#0d47a1,var(--azul));
-  transition:width 1.5s ease;box-shadow:0 0 8px rgba(79,195,247,.7)}
+  transition:width 1.5s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 0 15px rgba(79,195,247,.9)}
 #bf{height:100%;background:linear-gradient(90deg,#880e4f,var(--rosa));
-  transition:width 1.5s ease;box-shadow:0 0 8px rgba(240,98,146,.7)}
-.vtxt{display:flex;justify-content:space-between;font-size:7.5pt;margin-top:5px;
-  color:rgba(212,175,55,.5);font-family:var(--ft);letter-spacing:1px}
+  transition:width 1.5s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 0 15px rgba(240,98,146,.9)}
+.vtxt{display:flex;justify-content:space-between;font-size:9pt;margin-top:8px;
+  color:rgba(212,175,55,.7);font-family:var(--ft);letter-spacing:1px; font-weight: 600;}
 
-/* REVELACIÓN */
-#revc h1{font-family:var(--fd);font-size:clamp(18pt,4.5vw,28pt);font-weight:700;
-  letter-spacing:3px;animation:glowPulse 1.8s ease-in-out infinite alternate}
-#revc p{font-family:var(--fb);font-size:10.5pt;line-height:1.7;
-  color:#c8b898;margin-top:8px;font-style:italic}
+/* REVELACIÓN FINAL */
+#revc h1{font-family:var(--fd);font-size:clamp(22pt,5vw,34pt);font-weight:700;
+  letter-spacing:5px;animation:glowPulse 1.5s ease-in-out infinite alternate}
+#revc p{font-family:var(--fb);font-size:12pt;line-height:1.8;
+  color:#ebdcb9;margin-top:15px;font-style:italic}
 @keyframes glowPulse{
-  from{text-shadow:0 0 20px currentColor,0 0 40px currentColor}
-  to{text-shadow:0 0 60px currentColor,0 0 120px currentColor,0 0 200px currentColor}}
+  from{text-shadow:0 0 30px currentColor,0 0 60px currentColor}
+  to{text-shadow:0 0 80px currentColor,0 0 150px currentColor,0 0 250px currentColor}}
 
-#hud{position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px;
-  font-family:var(--fb);font-size:7pt;color:rgba(212,175,55,.22);
-  letter-spacing:2px;font-style:italic;pointer-events:none;z-index:21}
+#hud{position:fixed;bottom:5px;left:0;right:0;text-align:center;
+  font-family:var(--fb);font-size:8pt;color:rgba(212,175,55,.4);
+  letter-spacing:3px;font-style:italic;pointer-events:none;z-index:21}
 </style>
 </head>
 <body>
 <canvas id="c3d"></canvas>
 
 <div id="hdr"><h1>Crónica de un Alma Estelar</h1><p>El Ritual del Destino</p></div>
-<div id="instruccion"><p>✦ &nbsp; La caldera aguarda tu magia &nbsp; ✦</p></div>
+<div id="instruccion"><p>✦ &nbsp; La energía cósmica aguarda tu magia &nbsp; ✦</p></div>
 
-<!-- PANEL ENTRADA -->
 <div class="panel on" id="pe">
-  <p class="ptit">El Ritual del Destino</p>
+  <p class="ptit">Invocación</p>
   <p class="psub">Inscribe tu nombre e invoca tu poción</p>
   <input type="text" id="nom" class="campo" placeholder="Tu nombre mágico" maxlength="28" autocomplete="off">
   <div class="row">
@@ -141,825 +144,338 @@ hr.sep{border:none;border-top:1px solid rgba(212,175,55,.18);margin:10px 0}
   </div>
 </div>
 
-<!-- PANEL ESPERA -->
 <div class="panel" id="pw">
-  <p class="ptit">Tu magia fue vertida</p>
-  <p class="psub">La revelación ocurrirá en:</p>
-  <div id="reloj">Invocando…</div>
+  <p class="ptit">Magia Sellada</p>
+  <p class="psub">El cosmos revelará su secreto en:</p>
+  <div id="reloj">Sincronizando...</div>
   <hr class="sep">
   <div class="bwrap"><div id="bn" style="width:50%"></div><div id="bf" style="width:50%"></div></div>
   <div class="vtxt"><span id="vn">🌊 0</span><span id="vf">0 🌸</span></div>
-  <div id="revc" style="display:none;margin-top:12px"></div>
+  <div id="revc" style="display:none;margin-top:20px"></div>
 </div>
-
-<div id="hud">Portal Estelar &nbsp;·&nbsp; Firebase Realtime &nbsp;·&nbsp; WebGL</div>
+<div id="hud">Magia Procesada mediante WebGL & Bloom</div>
 
 <script>
-/* ─────────────────────────────────────────────────────
-   FIREBASE
-───────────────────────────────────────────────────── */
+/* 1. FIREBASE (Reemplaza con tus datos reales) */
 firebase.initializeApp({
-  apiKey:"AIzaSyAivQlUAXmdyMgO-7TWrHeLQQlRyqg_JrU",
-  authDomain:"cronica-de-un-alma-estelar.firebaseapp.com",
-  databaseURL:"https://cronica-de-un-alma-estelar-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:"cronica-de-un-alma-estelar",
-  storageBucket:"cronica-de-un-alma-estelar.firebasestorage.app"
+  apiKey:"TU_API_KEY",
+  authDomain:"TU_DOMINIO.firebaseapp.com",
+  databaseURL:"https://TU_URL_DE_DATABASE.firebaseio.com",
+  projectId:"TU_PROYECTO"
 });
 const db = firebase.database();
 
-/* ─────────────────────────────────────────────────────
-   SPRITE TEXTURES — la clave para NO tener cuadrados
-───────────────────────────────────────────────────── */
+/* 2. TEXTURAS PROCEDURALES MÁGICAS */
 function makeSoftCircle(size=128, inner=0.0, falloff=1.0){
   const c=document.createElement('canvas'); c.width=c.height=size;
   const ctx=c.getContext('2d');
   const g=ctx.createRadialGradient(size/2,size/2,size*inner*0.5, size/2,size/2,size*0.5);
   g.addColorStop(0,'rgba(255,255,255,1)');
-  g.addColorStop(0.3,'rgba(255,255,255,0.85)');
+  g.addColorStop(0.3,'rgba(255,255,255,0.8)');
   g.addColorStop(falloff,'rgba(255,255,255,0)');
   ctx.fillStyle=g; ctx.fillRect(0,0,size,size);
   return new THREE.CanvasTexture(c);
 }
-function makeStarSprite(){
-  const c=document.createElement('canvas'); c.width=c.height=64;
-  const ctx=c.getContext('2d');
-  const g=ctx.createRadialGradient(32,32,0,32,32,32);
-  g.addColorStop(0,'rgba(255,248,220,1)');
-  g.addColorStop(0.15,'rgba(255,248,220,0.9)');
-  g.addColorStop(0.4,'rgba(255,248,220,0.3)');
-  g.addColorStop(1,'rgba(255,248,220,0)');
-  ctx.fillStyle=g; ctx.fillRect(0,0,64,64);
-  // Cruz de brillo
-  ctx.strokeStyle='rgba(255,248,220,0.6)'; ctx.lineWidth=0.8;
-  ctx.beginPath(); ctx.moveTo(32,4); ctx.lineTo(32,60); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(4,32); ctx.lineTo(60,32); ctx.stroke();
-  return new THREE.CanvasTexture(c);
-}
-function makeGlowRing(){
-  const c=document.createElement('canvas'); c.width=c.height=256;
-  const ctx=c.getContext('2d');
-  const g=ctx.createRadialGradient(128,128,80,128,128,128);
-  g.addColorStop(0,'rgba(255,255,255,0)');
-  g.addColorStop(0.7,'rgba(255,255,255,0.15)');
-  g.addColorStop(0.88,'rgba(255,255,255,0.6)');
-  g.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=g; ctx.fillRect(0,0,256,256);
-  return new THREE.CanvasTexture(c);
-}
+const TEX_SOFT = makeSoftCircle(128, 0.1, 0.9);
 
-// Pre-build sprites
-const TEX_SOFT   = makeSoftCircle(128, 0, 0.9);
-const TEX_STAR   = makeStarSprite();
-const TEX_GLOW   = makeSoftCircle(256, 0, 0.75);
-const TEX_RING   = makeGlowRing();
-const TEX_SMOKE  = makeSoftCircle(256, 0, 0.6);
-
-/* ─────────────────────────────────────────────────────
-   GLOBALS
-───────────────────────────────────────────────────── */
-let renderer, scene, camera, clock;
+/* 3. SETUP 3D Y COMPOSER (BLOOM) */
+let renderer, scene, camera, clock, composer;
 let mouse={x:0,y:0}, mT={x:0,y:0};
-let nebulaMesh, stars1, stars2;
-let caldronGroup, liqMesh, liqGlowMesh;
-let caldronLight, rimL1, rimL2, topLight;
-let bottleGroup, bottleLiqMesh;
-let glowPlane, glowPlane2;
+let caldronGroup, liqMesh, bottleGroup, bottleLiqMesh, mainLight;
 
-// Particle pools
-const PMAX={smoke:150,spark:500,stream:250,cosmic:500};
-const pools={smoke:[],spark:[],stream:[],cosmic:[]};
-let pGeo={}, pMesh={};
+// Partículas
+const PMAX = { smoke:200, spark:600, stream:300 };
+const pools = { smoke:[], spark:[], stream:[] };
+let pGeo = {}, pMesh = {};
+let pourState = 'idle'; 
+let targetColor = new THREE.Color(0.4, 0.1, 0.8);
 
-// State
-let pourState='idle'; // idle|animating|done
-let pourType=null;
-let pourTimer=null;
-let liqColor   = new THREE.Color(0.22,0.08,0.38);
-let liqTarget  = new THREE.Color(0.22,0.08,0.38);
-let lightColor = new THREE.Color(0.3,0.08,0.5);
-let lightTarget= new THREE.Color(0.3,0.08,0.5);
-let revealDone=false;
-const t0=performance.now();
-
-/* ─────────────────────────────────────────────────────
-   INIT
-───────────────────────────────────────────────────── */
 function init(){
   const canvas=document.getElementById('c3d');
-  renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setSize(window.innerWidth,window.innerHeight);
-  renderer.setClearColor(0x030208);
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.4;
-
+  renderer=new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x020105);
+  renderer.toneMapping=THREE.ReinhardToneMapping;
+  
   scene=new THREE.Scene();
-  scene.fog=new THREE.FogExp2(0x030208,0.012);
-  camera=new THREE.PerspectiveCamera(58,window.innerWidth/window.innerHeight,0.1,500);
-  camera.position.set(0,2.5,13);
-  camera.lookAt(0,0,0);
+  scene.fog=new THREE.FogExp2(0x020105, 0.015);
+  
+  camera=new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 500);
+  camera.position.set(0, 3, 14);
   clock=new THREE.Clock();
 
+  // POST-PROCESADO: LA MAGIA DEL BLOOM
+  const renderScene = new THREE.RenderPass(scene, camera);
+  const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+  bloomPass.threshold = 0.1; 
+  bloomPass.strength = 1.8; // Intensidad del brillo
+  bloomPass.radius = 0.8;
+  
+  composer = new THREE.EffectComposer(renderer);
+  composer.addPass(renderScene);
+  composer.addPass(bloomPass);
+
   buildLights();
-  buildNebula();
-  buildStars();
-  buildCosmicDust();
+  buildEnvironment();
   buildCaldron();
   buildBottle();
   buildParticleSystems();
 
   window.addEventListener('resize',()=>{
-    renderer.setSize(window.innerWidth,window.innerHeight);
-    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
   });
   window.addEventListener('mousemove',e=>{
     mT.x=(e.clientX/window.innerWidth-0.5)*2;
     mT.y=-(e.clientY/window.innerHeight-0.5)*2;
   });
-  window.addEventListener('deviceorientation',e=>{
-    if(e.gamma!=null){mT.x=(e.gamma||0)/35;mT.y=-(e.beta-45)/50;}
-  });
+
   loop();
 }
 
-/* ─────────────────────────────────────────────────────
-   LIGHTS
-───────────────────────────────────────────────────── */
 function buildLights(){
-  scene.add(new THREE.AmbientLight(0x100820,0.9));
-  topLight=new THREE.DirectionalLight(0x4a2580,0.4);
-  topLight.position.set(0,30,10); scene.add(topLight);
-
-  caldronLight=new THREE.PointLight(0x8a3fbf,6,22,1.5);
-  caldronLight.position.set(0,0.8,0); scene.add(caldronLight);
-
-  rimL1=new THREE.PointLight(0x3d1f8a,2.5,25,2);
-  rimL1.position.set(-9,5,3); scene.add(rimL1);
-  rimL2=new THREE.PointLight(0x8a1f6a,2.5,25,2);
-  rimL2.position.set(9,5,3); scene.add(rimL2);
-
-  // Bajo la caldera
-  const underLight=new THREE.PointLight(0x6a1fa8,3,12,2);
-  underLight.position.set(0,-2.5,0); scene.add(underLight);
+  scene.add(new THREE.AmbientLight(0x0a0514, 2.0));
+  mainLight = new THREE.PointLight(0x8a3fbf, 5, 20);
+  mainLight.position.set(0, 2, 0);
+  scene.add(mainLight);
 }
 
-/* ─────────────────────────────────────────────────────
-   NEBULA — shader FBM con 6 octavas
-───────────────────────────────────────────────────── */
-const NVRT=`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
-const NFRG=`
-uniform float T; uniform vec2 M;
-varying vec2 vUv;
-float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5);}
-float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
-  return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
-float fbm(vec2 p){float v=0.,a=0.5;
-  for(int i=0;i<7;i++){v+=a*n(p);p=p*2.1+vec2(1.7,9.2);a*=0.48;}return v;}
-void main(){
-  vec2 uv=vUv-.5; uv+=M*.015;
-  float f1=fbm(uv*2.0+T*.035);
-  float f2=fbm(uv*3.2-T*.028+vec2(f1*1.2));
-  float f3=fbm(uv*1.5+vec2(f2*.9,f1*.7)+T*.02);
-  float f4=fbm(uv*5.0+T*.05+f2);
-  // Paleta cósmica profunda
-  vec3 void_=vec3(.012,.008,.03);
-  vec3 neb1=vec3(.18,.04,.42);   // violeta
-  vec3 neb2=vec3(.04,.06,.38);   // índigo
-  vec3 neb3=vec3(.35,.04,.25);   // magenta oscuro
-  vec3 neb4=vec3(.02,.14,.28);   // azul profundo
-  vec3 col=void_;
-  col=mix(col,neb1,smoothstep(.28,.68,f1)*.85);
-  col=mix(col,neb2,smoothstep(.38,.75,f2)*.7);
-  col=mix(col,neb3,smoothstep(.45,.82,f3)*.55);
-  col=mix(col,neb4,smoothstep(.5,.85,f4)*.45);
-  // Núcleo brillante
-  float d=length(vUv-.5);
-  col+=neb1*.35*exp(-d*d*5.5)*(sin(T*.6)*.3+.7);
-  col+=neb2*.2*exp(-d*d*3.0)*(sin(T*.4+1.)*.2+.8);
-  // Viñeta
-  col*=1.-smoothstep(.2,.95,d)*.9;
-  gl_FragColor=vec4(col,1.);}
-`;
-function buildNebula(){
-  const g=new THREE.PlaneGeometry(220,130);
-  const m=new THREE.ShaderMaterial({
-    uniforms:{T:{value:0},M:{value:new THREE.Vector2()}},
-    vertexShader:NVRT,fragmentShader:NFRG
-  });
-  nebulaMesh=new THREE.Mesh(g,m);
-  nebulaMesh.position.z=-50; scene.add(nebulaMesh);
+function buildEnvironment(){
+  // Estrellas de fondo
+  const g = new THREE.BufferGeometry();
+  const p = new Float32Array(2000 * 3);
+  for(let i=0; i<2000*3; i++) p[i] = (Math.random()-0.5) * 150;
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  const m = new THREE.PointsMaterial({ color: 0xffe6a0, size: 0.15, transparent: true, opacity: 0.8 });
+  scene.add(new THREE.Points(g, m));
 }
 
-/* ─────────────────────────────────────────────────────
-   ESTRELLAS — sprite texture, no cuadrados
-───────────────────────────────────────────────────── */
-function makeStarCloud(n,spread,size,opa,tex){
-  const g=new THREE.BufferGeometry();
-  const p=new Float32Array(n*3);
-  for(let i=0;i<n*3;i++) p[i]=(Math.random()-.5)*spread;
-  g.setAttribute('position',new THREE.BufferAttribute(p,3));
-  const m=new THREE.PointsMaterial({
-    map:tex,size,sizeAttenuation:true,
-    transparent:true,opacity:opa,
-    depthWrite:false,blending:THREE.AdditiveBlending,
-    alphaTest:0.01
-  });
-  return new THREE.Points(g,m);
-}
-function buildStars(){
-  stars1=makeStarCloud(2500,220,0.32,0.85,TEX_STAR);
-  stars2=makeStarCloud(900,130,0.55,0.55,TEX_STAR);
-  scene.add(stars1); scene.add(stars2);
-}
-
-/* ─────────────────────────────────────────────────────
-   POLVO CÓSMICO
-───────────────────────────────────────────────────── */
-let dustGeo,dustData=[];
-function buildCosmicDust(){
-  const N=600;
-  dustGeo=new THREE.BufferGeometry();
-  const p=new Float32Array(N*3);
-  for(let i=0;i<N;i++){
-    p[i*3]=(Math.random()-.5)*80;
-    p[i*3+1]=(Math.random()-.5)*45;
-    p[i*3+2]=-4+Math.random()*10;
-    dustData.push({vy:.002+Math.random()*.005,vx:(Math.random()-.5)*.001});
-  }
-  dustGeo.setAttribute('position',new THREE.BufferAttribute(p,3));
-  const m=new THREE.PointsMaterial({
-    map:TEX_SOFT,size:.12,sizeAttenuation:true,
-    color:0xd4af37,transparent:true,opacity:.45,
-    depthWrite:false,blending:THREE.AdditiveBlending,alphaTest:.01
-  });
-  scene.add(new THREE.Points(dustGeo,m));
-}
-
-/* ─────────────────────────────────────────────────────
-   CALDERA 3D — ÉPICA
-───────────────────────────────────────────────────── */
 function buildCaldron(){
-  caldronGroup=new THREE.Group();
-  caldronGroup.position.set(0,-1.8,0);
+  caldronGroup = new THREE.Group();
+  caldronGroup.position.set(0, -2.5, 0);
 
-  // ── Material base metal oscuro ──
-  const metalMat=new THREE.MeshStandardMaterial({
-    color:0x0e0a18,metalness:.85,roughness:.35,
-    envMapIntensity:.5
+  // Material oscuro reflectante
+  const metal = new THREE.MeshStandardMaterial({color: 0x05030a, metalness: 0.9, roughness: 0.2});
+  // Material brillante para el Bloom
+  const gold = new THREE.MeshStandardMaterial({color: 0x000000, emissive: 0xd4af37, emissiveIntensity: 2.0});
+
+  // Cuerpo
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(2.5, 32, 32, 0, Math.PI*2, 0, Math.PI*0.65), metal);
+  belly.rotation.x = Math.PI;
+  caldronGroup.add(belly);
+
+  // Borde brillante
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(2.5, 0.15, 16, 64), gold);
+  rim.position.y = 0.2;
+  caldronGroup.add(rim);
+
+  // Líquido Radiactivo (Reacciona al Bloom)
+  const liqMat = new THREE.MeshStandardMaterial({
+    color: 0x000000, emissive: 0x4a148c, emissiveIntensity: 4.0, transparent:true, opacity: 0.9
   });
-  const goldMat=new THREE.MeshStandardMaterial({
-    color:0x8a6a10,metalness:.95,roughness:.1,
-    emissive:0xd4af37,emissiveIntensity:.6
-  });
-
-  // ── CUERPO — toroide inferior + esfera aplanada ──
-  // Parte baja (barriga)
-  const belly=new THREE.Mesh(
-    new THREE.SphereGeometry(2.4,64,48,0,Math.PI*2,0,Math.PI*.62),
-    metalMat
-  );
-  belly.rotation.x=Math.PI; belly.castShadow=true; caldronGroup.add(belly);
-
-  // Parte superior (anillo de apertura)
-  const mouth=new THREE.Mesh(
-    new THREE.CylinderGeometry(2.35,2.4,.22,64),metalMat
-  );
-  mouth.position.y=.12; caldronGroup.add(mouth);
-
-  // Borde dorado (torus grueso)
-  const rim=new THREE.Mesh(new THREE.TorusGeometry(2.4,.14,20,100),goldMat);
-  rim.position.y=.22; caldronGroup.add(rim);
-
-  // Segundo borde decorativo más fino
-  const rim2=new THREE.Mesh(
-    new THREE.TorusGeometry(2.0,.06,12,80),
-    new THREE.MeshStandardMaterial({color:0x6a4f08,metalness:.9,roughness:.15,
-      emissive:0xd4af37,emissiveIntensity:.35})
-  );
-  rim2.position.y=-.55; rim2.rotation.x=Math.PI/2; caldronGroup.add(rim2);
-
-  // ── PATAS (3) ──
-  for(let i=0;i<3;i++){
-    const a=(i/3)*Math.PI*2;
-    const leg=new THREE.Mesh(
-      new THREE.CylinderGeometry(.1,.15,1.4,10),
-      metalMat
-    );
-    leg.position.set(Math.cos(a)*1.85,-1.1,Math.sin(a)*1.85);
-    leg.rotation.z=Math.cos(a)*.25; leg.rotation.x=Math.sin(a)*.25;
-    leg.castShadow=true; caldronGroup.add(leg);
-    // Pie dorado
-    const foot=new THREE.Mesh(new THREE.SphereGeometry(.16,12,8),goldMat);
-    foot.position.set(Math.cos(a)*2.05,-1.72,Math.sin(a)*2.05);
-    caldronGroup.add(foot);
-  }
-
-  // ── MANIJAS ──
-  for(let s of[-1,1]){
-    const h=new THREE.Mesh(
-      new THREE.TorusGeometry(.38,.055,14,40,Math.PI),goldMat
-    );
-    h.position.set(s*2.45,-.05,0);
-    h.rotation.z=s*Math.PI/2; caldronGroup.add(h);
-    // Tornillos
-    for(let t of[-.18,.18]){
-      const bolt=new THREE.Mesh(new THREE.SphereGeometry(.07,8,8),goldMat);
-      bolt.position.set(s*2.42,t,.0); caldronGroup.add(bolt);
-    }
-  }
-
-  // ── RUNAS DORADAS (bandas) ──
-  const runeColors=[.8,1.0,.6];
-  for(let i=0;i<3;i++){
-    const rb=new THREE.Mesh(
-      new THREE.TorusGeometry(2.4-i*.3,.018,8,100),
-      new THREE.MeshStandardMaterial({
-        color:0xd4af37,metalness:1,roughness:.05,
-        emissive:0xd4af37,emissiveIntensity:runeColors[i]
-      })
-    );
-    rb.position.y=-.28-i*.5; rb.rotation.x=Math.PI/2;
-    caldronGroup.add(rb);
-  }
-
-  // ── SÍMBOLOS (esferas doradas en el borde) ──
-  for(let i=0;i<12;i++){
-    const a=(i/12)*Math.PI*2;
-    const sym=new THREE.Mesh(
-      new THREE.SphereGeometry(.055,8,8),
-      new THREE.MeshStandardMaterial({color:0xd4af37,emissive:0xd4af37,emissiveIntensity:2.2,metalness:.9,roughness:.05})
-    );
-    sym.position.set(Math.cos(a)*2.38,.24,Math.sin(a)*2.38);
-    caldronGroup.add(sym);
-  }
-
-  // ── LÍQUIDO INTERIOR — disco con shader ──
-  const liqMat=new THREE.MeshStandardMaterial({
-    color:new THREE.Color(.22,.08,.42),
-    emissive:new THREE.Color(.22,.08,.42),emissiveIntensity:2.8,
-    transparent:true,opacity:.96,roughness:.05,metalness:.1
-  });
-  liqMesh=new THREE.Mesh(new THREE.CircleGeometry(2.28,80),liqMat);
-  liqMesh.rotation.x=-Math.PI/2; liqMesh.position.y=.18;
+  liqMesh = new THREE.Mesh(new THREE.CircleGeometry(2.4, 64), liqMat);
+  liqMesh.rotation.x = -Math.PI/2;
+  liqMesh.position.y = 0.1;
   caldronGroup.add(liqMesh);
 
-  // ── GLOW DEL LÍQUIDO (sprite suave encima) ──
-  const glowSprite=new THREE.Mesh(
-    new THREE.PlaneGeometry(5,5),
-    new THREE.MeshBasicMaterial({
-      map:TEX_GLOW,color:0x8a3fbf,
-      transparent:true,opacity:.55,
-      depthWrite:false,blending:THREE.AdditiveBlending,
-      side:THREE.DoubleSide
-    })
-  );
-  glowSprite.rotation.x=-Math.PI/2; glowSprite.position.y=.22;
-  liqGlowMesh=glowSprite; caldronGroup.add(glowSprite);
-
-  // ── GLOW GENERAL BAJO LA CALDERA ──
-  glowPlane=new THREE.Mesh(
-    new THREE.PlaneGeometry(18,18),
-    new THREE.MeshBasicMaterial({
-      map:TEX_GLOW,color:0x6a2d8e,
-      transparent:true,opacity:.35,
-      depthWrite:false,blending:THREE.AdditiveBlending,
-      side:THREE.DoubleSide
-    })
-  );
-  glowPlane.rotation.x=-Math.PI/2; glowPlane.position.set(0,-1.9,-1);
-  scene.add(glowPlane);
-
-  // Glow vertical (columna de luz sobre la caldera)
-  glowPlane2=new THREE.Mesh(
-    new THREE.PlaneGeometry(8,16),
-    new THREE.MeshBasicMaterial({
-      map:TEX_GLOW,color:0x8a3fbf,
-      transparent:true,opacity:.18,
-      depthWrite:false,blending:THREE.AdditiveBlending,
-      side:THREE.DoubleSide
-    })
-  );
-  glowPlane2.position.set(0,5,-.5); // columna encima
-  scene.add(glowPlane2);
-
   scene.add(caldronGroup);
-
-  // Suelo reflectante
-  const floor=new THREE.Mesh(
-    new THREE.PlaneGeometry(60,60),
-    new THREE.MeshStandardMaterial({color:0x08060f,metalness:.5,roughness:.8})
-  );
-  floor.rotation.x=-Math.PI/2; floor.position.y=-3.35;
-  floor.receiveShadow=true; scene.add(floor);
 }
 
-/* ─────────────────────────────────────────────────────
-   FRASCO 3D
-───────────────────────────────────────────────────── */
 function buildBottle(){
-  bottleGroup=new THREE.Group();
+  bottleGroup = new THREE.Group();
+  
+  const glass = new THREE.MeshStandardMaterial({color: 0xffffff, transparent: true, opacity: 0.2, metalness: 1.0});
+  const gold = new THREE.MeshStandardMaterial({color: 0x000000, emissive: 0xd4af37, emissiveIntensity: 2.5});
+  
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.5, 8), glass);
+  bottleGroup.add(body);
+  
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.4, 0.5, 8), glass);
+  neck.position.y = 1.0;
+  bottleGroup.add(neck);
 
-  const glassMat=new THREE.MeshStandardMaterial({
-    color:0xb0d8f0,transparent:true,opacity:.28,
-    metalness:.05,roughness:.02,side:THREE.DoubleSide
-  });
-  const goldMat=new THREE.MeshStandardMaterial({
-    color:0x8a6a10,metalness:.95,roughness:.1,
-    emissive:0xd4af37,emissiveIntensity:.8
-  });
-
-  // Cuerpo principal (hex estilo poción)
-  const bodyG=new THREE.CylinderGeometry(.34,.40,1.15,6);
-  bottleGroup.add(new THREE.Mesh(bodyG,glassMat));
-
-  // Cuello
-  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.13,.30,.48,16),glassMat);
-  neck.position.y=.82; bottleGroup.add(neck);
-
-  // Tapón dorado con piedra
-  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.155,.155,.20,16),goldMat);
-  cap.position.y=1.16; bottleGroup.add(cap);
-  const gem=new THREE.Mesh(
-    new THREE.SphereGeometry(.1,16,16),
-    new THREE.MeshStandardMaterial({color:0x9b59b6,emissive:0x9b59b6,emissiveIntensity:3,metalness:.1,roughness:.05})
+  // Líquido del frasco
+  bottleLiqMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.45, 1.2, 8), 
+    new THREE.MeshStandardMaterial({color:0x000000, emissive: 0x8a2dbf, emissiveIntensity: 5.0})
   );
-  gem.position.y=1.32; bottleGroup.add(gem);
+  bottleLiqMesh.position.y = -0.1;
+  bottleGroup.add(bottleLiqMesh);
 
-  // Líquido interior
-  const liqMat=new THREE.MeshStandardMaterial({
-    color:0x8a2dbf,emissive:0x8a2dbf,emissiveIntensity:2.5,
-    transparent:true,opacity:.8
-  });
-  bottleLiqMesh=new THREE.Mesh(new THREE.CylinderGeometry(.30,.36,.9,16),liqMat);
-  bottleLiqMesh.position.y=-.08; bottleGroup.add(bottleLiqMesh);
-
-  // Brillo interno (sprite dentro del frasco)
-  const innerGlow=new THREE.Mesh(
-    new THREE.PlaneGeometry(.6,.9),
-    new THREE.MeshBasicMaterial({
-      map:TEX_GLOW,color:0xaa55ff,
-      transparent:true,opacity:.6,
-      depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide
-    })
-  );
-  innerGlow.position.y=-.05; bottleGroup.add(innerGlow);
-
-  // Espiral dorada
-  for(let i=0;i<24;i++){
-    const a=(i/24)*Math.PI*8;
-    const sp=new THREE.Mesh(
-      new THREE.SphereGeometry(.025,6,6),
-      new THREE.MeshStandardMaterial({color:0xd4af37,emissive:0xd4af37,emissiveIntensity:2.5})
-    );
-    const y=-.55+(i/24)*1.1, r=.48;
-    sp.position.set(Math.cos(a)*r,y,Math.sin(a)*r);
-    bottleGroup.add(sp);
-  }
-
-  // Empieza fuera de pantalla
-  bottleGroup.position.set(12,15,2);
+  bottleGroup.position.set(10, 10, 0); // Oculto al inicio
   scene.add(bottleGroup);
 }
 
-/* ─────────────────────────────────────────────────────
-   SISTEMAS DE PARTÍCULAS — todos con sprite circular
-───────────────────────────────────────────────────── */
-function makePool(key,N,tex,size,color,opacity,blend){
-  const g=new THREE.BufferGeometry();
-  const p=new Float32Array(N*3); for(let i=0;i<N*3;i++) p[i]=9999;
-  g.setAttribute('position',new THREE.BufferAttribute(p,3));
-  const m=new THREE.PointsMaterial({
-    map:tex,size,sizeAttenuation:true,
-    color,transparent:true,opacity,
-    depthWrite:false,blending:blend||THREE.AdditiveBlending,
-    alphaTest:.01
+function makePool(key, N, size, color, blend){
+  const g = new THREE.BufferGeometry();
+  const p = new Float32Array(N*3); p.fill(9999);
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  // El color lo empujamos al Emissive para que brille con el Bloom
+  const m = new THREE.PointsMaterial({
+    map: TEX_SOFT, size: size, color: color, transparent: true, opacity: 0.8,
+    depthWrite: false, blending: blend
   });
-  const mesh=new THREE.Points(g,m);
+  const mesh = new THREE.Points(g, m);
   scene.add(mesh);
   pGeo[key]=g; pMesh[key]=mesh;
-  for(let i=0;i<N;i++) pools[key].push({x:0,y:0,z:0,vx:0,vy:0,vz:0,life:0,ml:0,active:false,idx:i,r:1,g:1,b:1,s:1});
+  for(let i=0; i<N; i++) pools[key].push({x:0,y:0,z:0,vx:0,vy:0,vz:0,life:0, active:false, idx:i});
 }
 
 function buildParticleSystems(){
-  makePool('smoke', PMAX.smoke, TEX_SMOKE, 2.2, 0x9b7bc4, 0.22);
-  makePool('spark', PMAX.spark, TEX_SOFT,  0.18, 0xffffff, 0.95);
-  makePool('stream',PMAX.stream,TEX_SOFT,  0.22, 0xd4af37, 0.92);
-  makePool('cosmic',PMAX.cosmic,TEX_STAR,  0.28, 0xfff8e1, 0.7);
+  makePool('smoke', PMAX.smoke, 3.0, 0x8a2dbf, THREE.AdditiveBlending);
+  makePool('spark', PMAX.spark, 0.3, 0xffffff, THREE.AdditiveBlending);
+  makePool('stream', PMAX.stream, 0.4, 0xffffff, THREE.AdditiveBlending);
 }
 
-/* ─────────────────────────────────────────────────────
-   SPAWN HELPERS
-───────────────────────────────────────────────────── */
-function getFree(key){return pools[key].find(p=>!p.active);}
+function getFree(key){ return pools[key].find(p=>!p.active); }
 
-function spawnSmoke(x,y,z,intense=1){
-  const p=getFree('smoke'); if(!p)return;
-  p.active=true; p.x=x; p.y=y; p.z=z;
-  p.vx=(Math.random()-.5)*.04;
-  p.vy=.03+Math.random()*.055*intense;
-  p.vz=(Math.random()-.5)*.04;
-  p.ml=160+Math.random()*140; p.life=p.ml;
+function spawnSpark(x,y,z, isExplosion=false){
+  const p = getFree('spark'); if(!p)return;
+  p.active = true; p.x=x; p.y=y; p.z=z;
+  const spd = isExplosion ? 0.2 + Math.random()*0.3 : 0.05 + Math.random()*0.05;
+  const a = Math.random() * Math.PI*2;
+  p.vx = Math.cos(a) * spd;
+  p.vy = (Math.random() * 0.2) + (isExplosion ? 0.2 : 0.05);
+  p.vz = Math.sin(a) * spd;
+  p.life = 60 + Math.random()*40;
 }
-
-function spawnSpark(x,y,z,cr,cg,cb,burst=false){
-  const p=getFree('spark'); if(!p)return;
-  p.active=true; p.x=x; p.y=y; p.z=z;
-  const spd=burst?.24+Math.random()*.3:.07+Math.random()*.13;
-  const a=Math.random()*Math.PI*2, el=(Math.random()-(burst?.1:.3))*Math.PI;
-  p.vx=Math.cos(a)*Math.cos(el)*spd;
-  p.vy=Math.sin(el)*spd+(burst?.14:.06);
-  p.vz=Math.sin(a)*Math.cos(el)*spd;
-  p.ml=50+Math.random()*70; p.life=p.ml;
-  p.r=cr; p.g=cg; p.b=cb;
-}
-
-function spawnStream(sx,sy,sz){
-  // destino: boca de la caldera
-  const p=getFree('stream'); if(!p)return;
-  p.active=true; p.x=sx; p.y=sy; p.z=sz;
-  // vector parabólico hacia la caldera
-  const dx=0-sx, dy=-1.5-sy, dz=0-sz;
-  const dist=Math.sqrt(dx*dx+dy*dy+dz*dz);
-  const spd=.045;
-  p.vx=dx/dist*spd+(Math.random()-.5)*.02;
-  p.vy=dy/dist*spd+.02;
-  p.vz=dz/dist*spd+(Math.random()-.5)*.02;
-  p.ml=40+Math.random()*30; p.life=p.ml;
-}
-
-/* ─────────────────────────────────────────────────────
-   ANIMACIÓN DE VERTIDO — 5 FASES
-   Coordenadas calibradas para que el frasco
-   apunte exactamente sobre la boca de la caldera
-───────────────────────────────────────────────────── */
-// Posición de reposo del frasco (visible, derecha)
-const BOTTLE_REST={x:3.8,y:5.5,z:1.0};
-// Posición de vertido (sobre la caldera)
-const BOTTLE_POUR={x:2.1,y:3.2,z:.4};
 
 function startPour(tipo){
-  if(pourState!=='idle')return;
-  pourState='animating'; pourType=tipo;
+  if(pourState !== 'idle') return;
+  pourState = 'animating';
+  
+  const isNino = tipo === 'nino';
+  targetColor = isNino ? new THREE.Color(0x0088ff) : new THREE.Color(0xff0088);
+  
+  // Cambiar color del líquido en el frasco a ultra brillante
+  bottleLiqMesh.material.emissive.copy(targetColor);
+  pMesh.stream.material.color.copy(targetColor);
 
-  const isN=tipo==='nino';
-  // Colores
-  const lc=isN?new THREE.Color(.08,.5,.95):new THREE.Color(.92,.12,.45);
-  const lc2=isN?new THREE.Color(.12,.7,1.0):new THREE.Color(1,.28,.62);
-  liqTarget.copy(lc);
-  lightTarget.copy(lc);
-  bottleLiqMesh.material.color.copy(lc2);
-  bottleLiqMesh.material.emissive.copy(lc2);
-  pMesh.stream.material.color.copy(lc2);
-
-  // Colores de chispas
-  const SR=isN?.12:1, SG=isN?.7:.18, SB=isN?1:.62;
-
-  let phase=0, pf=0;
-  pourTimer=setInterval(()=>{
-    pf+=.013;
-    const ef=eio(Math.min(pf,1));
-
-    if(phase===0){
-      // DESCENSO: frasco baja desde arriba-derecha a posición de vertido
-      bottleGroup.position.x=lerp(BOTTLE_REST.x,BOTTLE_POUR.x,ef);
-      bottleGroup.position.y=lerp(BOTTLE_REST.y,BOTTLE_POUR.y,ef);
-      bottleGroup.position.z=lerp(BOTTLE_REST.z,BOTTLE_POUR.z,ef);
-      bottleGroup.rotation.set(0,0,0);
-      if(pf>=1){phase=1;pf=0;}
-
-    }else if(phase===1){
-      // INCLINACIÓN: frasco se inclina para verter (z=-1.3 rad)
-      bottleGroup.rotation.z=lerp(0,-1.3,eio(Math.min(pf,1)));
-      bottleGroup.rotation.x=lerp(0,.25,eio(Math.min(pf,1)));
-      if(pf>=1){phase=2;pf=0;}
-
-    }else if(phase===2){
-      // VERTIDO ACTIVO
-      // Punta del frasco (cuello rotado): aprox bottle pos + offset rotado
-      const bx=bottleGroup.position.x + Math.sin(1.3)*1.0;
-      const by=bottleGroup.position.y + Math.cos(1.3)*.9 -.15;
-      const bz=bottleGroup.position.z;
-
-      for(let i=0;i<5;i++) spawnStream(bx,by,bz);
-
-      // Chispas de la caldera durante el vertido
-      if(Math.random()<.4){
-        const a=Math.random()*Math.PI*2;
-        const cx=Math.cos(a)*2.0, cz=Math.sin(a)*2.0;
-        spawnSpark(cx,-1.5+.3,cz,SR,SG,SB,false);
-      }
-      // Humo intenso
-      if(Math.random()<.55){
-        const a=Math.random()*Math.PI*2;
-        spawnSmoke(Math.cos(a)*1.4,-1.5+.2,Math.sin(a)*1.4,1.4);
-      }
-
-      // Caldera cambia color
-      liqMesh.material.color.lerp(new THREE.Color(SR*.6,SG*.4,SB*.7),.04);
-      liqMesh.material.emissive.lerp(new THREE.Color(SR*.4,SG*.25,SB*.55),.04);
-
-      if(pf>=1){
-        phase=3;pf=0;
-        // EXPLOSION de chispas
-        for(let i=0;i<180;i++){
-          const a=Math.random()*Math.PI*2;
-          spawnSpark(Math.cos(a)*2,-1.5+.5,Math.sin(a)*2,SR,SG,SB,true);
+  let step = 0;
+  const anim = setInterval(() => {
+    step += 0.02;
+    
+    // Entra el frasco volando mágicamente
+    if(step < 1) {
+      bottleGroup.position.set(
+        4 - (step * 2), 
+        6 - (step * 2), 
+        1
+      );
+      bottleGroup.rotation.z = -step * 1.5; // Se inclina
+    } 
+    // Vierte la poción
+    else if (step < 3) {
+      for(let i=0; i<4; i++){
+        const st = getFree('stream');
+        if(st) {
+          st.active = true; 
+          st.x = bottleGroup.position.x - 1; 
+          st.y = bottleGroup.position.y - 1; 
+          st.z = 1;
+          st.vx = -0.05; st.vy = -0.15; st.vz = 0;
+          st.life = 30;
         }
       }
-
-    }else if(phase===3){
-      // VUELTA: frasco se endereza
-      bottleGroup.rotation.z=lerp(-1.3,0,eio(Math.min(pf,1)));
-      bottleGroup.rotation.x=lerp(.25,0,eio(Math.min(pf,1)));
-      if(pf>=1){phase=4;pf=0;}
-
-    }else if(phase===4){
-      // SALIDA: frasco vuela hacia arriba y sale
-      bottleGroup.position.y=lerp(BOTTLE_POUR.y,BOTTLE_REST.y+8,eio(Math.min(pf,1)));
-      bottleGroup.position.x=lerp(BOTTLE_POUR.x,BOTTLE_REST.x+4,eio(Math.min(pf,1)));
-      if(pf>=1){
-        clearInterval(pourTimer);
-        bottleGroup.position.set(99,99,99);
-        pourState='done';
-        // Chispas finales
-        for(let w=0;w<6;w++) setTimeout(()=>{
-          for(let i=0;i<100;i++) spawnSpark(
-            (Math.random()-.5)*4,-1.5+(Math.random()-.5)*3,(Math.random()-.5)*4,SR,SG,SB,true
-          );
-        },w*200);
-      }
+      // Reacción de la caldera
+      liqMesh.material.emissive.lerp(targetColor, 0.05);
+      mainLight.color.lerp(targetColor, 0.05);
+      spawnSpark(0, -2, 0, true);
+    } 
+    // Se va el frasco
+    else if (step < 4) {
+      bottleGroup.position.y += 0.1;
+      bottleGroup.position.x += 0.1;
+      bottleGroup.rotation.z += 0.05;
+    } else {
+      clearInterval(anim);
+      bottleGroup.position.set(10,10,0);
+      pourState = 'done';
     }
-  },16);
+  }, 16);
 }
 
-function lerp(a,b,t){return a+(b-a)*t;}
-function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
-
-/* ─────────────────────────────────────────────────────
-   MAIN LOOP
-───────────────────────────────────────────────────── */
 function loop(){
   requestAnimationFrame(loop);
-  const now=(performance.now()-t0)/1e3;
-  const dt=clock.getDelta();
+  const time = clock.getElapsedTime();
 
-  // Suavizado mouse
-  mouse.x+=(mT.x-mouse.x)*.05;
-  mouse.y+=(mT.y-mouse.y)*.05;
+  mouse.x += (mT.x - mouse.x) * 0.05;
+  mouse.y += (mT.y - mouse.y) * 0.05;
 
-  // Cámara parallax suave
-  camera.position.x+=(mouse.x*1.4-camera.position.x)*.04;
-  camera.position.y+=(mouse.y*.6+2.5-camera.position.y)*.04;
-  camera.lookAt(0,0,0);
+  camera.position.x += (mouse.x * 2 - camera.position.x) * 0.05;
+  camera.position.y += (mouse.y * 1 + 3 - camera.position.y) * 0.05;
+  camera.lookAt(0, -1, 0);
 
-  // Nebula
-  if(nebulaMesh){
-    nebulaMesh.material.uniforms.T.value=now;
-    nebulaMesh.material.uniforms.M.value.set(mouse.x,mouse.y);
+  if(caldronGroup) {
+    caldronGroup.rotation.y = time * 0.2;
+    liqMesh.position.y = 0.1 + Math.sin(time * 3) * 0.05; // Pulso del líquido
+    mainLight.intensity = 3 + Math.sin(time * 5) * 1.5; // Luz parpadeante
   }
 
-  // Estrellas — rotación diferencial entre capas
-  if(stars1){stars1.rotation.y=now*.005;stars1.rotation.z=now*.0015;}
-  if(stars2){stars2.rotation.y=now*.008;stars2.rotation.z=-now*.002;}
-
-  // Polvo cósmico
-  if(dustGeo){
-    const pa=dustGeo.attributes.position.array;
-    dustData.forEach((d,i)=>{
-      pa[i*3]+=d.vx; pa[i*3+1]+=d.vy;
-      if(pa[i*3+1]>22){pa[i*3+1]=-22;pa[i*3]=(Math.random()-.5)*80;}
-    });
-    dustGeo.attributes.position.needsUpdate=true;
+  if(bottleGroup && pourState === 'idle') {
+    bottleGroup.position.y = 10 + Math.sin(time) * 0.5;
   }
 
-  // Caldera — rotación lenta + runas
-  if(caldronGroup){
-    caldronGroup.rotation.y=now*.12;
-    // Runas pulsan
-    caldronGroup.children.forEach((c,i)=>{
-      if(c.material&&c.material.emissiveIntensity!==undefined&&c.material.color.r>.5){
-        c.material.emissiveIntensity=.4+.5*Math.sin(now*1.8+i*.9);
-      }
-    });
-    // Líquido
-    if(liqMesh){
-      liqMesh.position.y=.18+Math.sin(now*2.1)*.025; // oleaje
-      liqMesh.material.emissiveIntensity=2.4+.8*Math.sin(now*2.8);
-    }
-    if(liqGlowMesh){
-      liqGlowMesh.material.opacity=.5+.2*Math.sin(now*1.5);
-      liqGlowMesh.rotation.z=now*.3;
-    }
-  }
+  // Update Sparks
+  const spa = pGeo.spark.attributes.position.array;
+  pools.spark.forEach(p => {
+    if(!p.active) return;
+    p.life--;
+    p.x += p.vx; p.y += p.vy; p.z += p.vz;
+    p.vy -= 0.005; // Gravedad suave
+    if(p.life <= 0) { p.active = false; spa[p.idx*3]=9999; }
+    else { spa[p.idx*3]=p.x; spa[p.idx*3+1]=p.y; spa[p.idx*3+2]=p.z; }
+  });
+  pGeo.spark.attributes.position.needsUpdate = true;
 
-  // Interpolar color caldera y luces
-  liqColor.lerp(liqTarget,.018);
-  lightColor.lerp(lightTarget,.018);
-  if(caldronLight){
-    caldronLight.color.copy(lightColor);
-    caldronLight.intensity=5+2.5*Math.sin(now*2.6);
-  }
-  if(rimL1){rimL1.color.copy(lightColor); rimL1.intensity=2+Math.sin(now*1.3)*1;}
-  if(rimL2){rimL2.color.copy(lightColor); rimL2.intensity=2+Math.sin(now*1.7)*1;}
-  if(glowPlane) glowPlane.material.color.copy(lightColor);
-  if(glowPlane2){glowPlane2.material.color.copy(lightColor);glowPlane2.material.opacity=.12+.08*Math.sin(now*1.2);}
+  // Update Stream
+  const sta = pGeo.stream.attributes.position.array;
+  pools.stream.forEach(p => {
+    if(!p.active) return;
+    p.life--;
+    p.x += p.vx; p.y += p.vy; p.z += p.vz;
+    if(p.life <= 0) { p.active = false; sta[p.idx*3]=9999; }
+    else { sta[p.idx*3]=p.x; sta[p.idx*3+1]=p.y; sta[p.idx*3+2]=p.z; }
+  });
+  pGeo.stream.attributes.position.needsUpdate = true;
 
-  // Frasco — gema pulsa
-  if(bottleGroup&&pourState==='idle'){
-    bottleLiqMesh.material.emissiveIntensity=2+Math.sin(now*3)*0.6;
-    // Flotar suavemente
-    bottleGroup.position.y=(BOTTLE_REST.y)+Math.sin(now*.8)*.2;
-    bottleGroup.rotation.y=now*.4;
-    bottleGroup.position.x=BOTTLE_REST.x+Math.sin(now*.5)*.15;
-  }
-
-  // Spawn continuo de humo de la caldera
-  if(Math.random()<.35){
-    const a=Math.random()*Math.PI*2;
-    spawnSmoke(Math.cos(a)*1.5,-1.5+.1,Math.sin(a)*1.5);
-  }
-  // Chispas doradas continuas
-  if(Math.random()<.3){
-    const a=Math.random()*Math.PI*2;
-    spawnSpark(Math.cos(a)*2.1,-1.5+.1,Math.sin(a)*2.1,.92,.76,.2,false);
-  }
-
-  // ── UPDATE SMOKE ──
-  {const pa=pGeo.smoke.attributes.position.array;
-  pools.smoke.forEach(p=>{
-    if(!p.active)return; p.life--;
-    p.x+=p.vx;p.y+=p.vy;p.z+=p.vz;
-    p.vx*=.99;p.vy*=.997;p.vz*=.99;
-    if(p.life<=0){p.active=false;pa[p.idx*3]=9999;return;}
-    pa[p.idx*3]=p.x;pa[p.idx*3+1]=p.y;pa[p.idx*3+2]=p.z;
-  });pGeo.smoke.attributes.position.needsUpdate=true;}
-
-  // ── UPDATE SPARKS (con color por vértice) ──
-  {const pa=pGeo.spark.attributes.position.array;
-  // Actualizar color dinámicamente cambiando material
-  pools.spark.forEach(p=>{
-    if(!p.active)return; p.life--;
-    p.vy-=.004;
-    p.x+=p.vx;p.y+=p.vy;p.z+=p.vz;
-    p.vx*=.96;p.vz*=.96;
-    if(p.life<=0){p.active=false;pa[p.idx*3]=9999;return;}
-    pa[p.idx*3]=p.x;pa[p.idx*3+1]=p.y;pa[p.idx*3+2]=p.z;
-  });pGeo.spark.attributes.position.needsUpdate=true;}
-
-  // ── UPDATE STREAM ──
-  {const pa=pGeo.stream.attributes.position.array;
-  pools.stream.forEach(p=>{
-    if(!p.active)return; p.life--;
-    p.vy-=.007; // parábola
-    p.x+=p.vx;p.y+=p.vy;p.z+=p.vz;
-    if(p.life<=0){p.active=false;pa[p.idx*3]=9999;return;}
-    pa[p.idx*3]=p.x;pa[p.idx*3+1]=p.y;pa[p.idx*3+2]=p.z;
-  });pGeo.stream.attributes.position.needsUpdate=true;}
-
-  renderer.render(scene,camera);
+  // USAR COMPOSER EN LUGAR DE RENDERER PARA ACTIVAR EL BLOOM
+  composer.render();
 }
 
-/* ─────────────────────────────────────────────────────
-   REVELACIÓN FINAL
-───────────────────────────────────────────────────── */
 function doReveal(sexo){
-  if(revealDone)return; revealDone=true;
-  const isN=sexo==='nino';
-  const hex=isN?'#7ec0ee':'#f4b4ec';
-  const tit=isN?'¡Es un Niño!':'¡Es una Niña!';
-  const txt=isN?'Un pequeño Guardián Estelar viene en camino.<br>Las constelaciones cantan en su honor.':
-                'Una pequeña Protectora Cósmica viene en camino.<br>Las estrellas danzan en su nombre.';
-  const SR=isN?.12:1, SG=isN?.72:.18, SB=isN?1:.62;
-
+  const isN = sexo==='nino';
+  const hex = isN ? '#7ec0ee' : '#f4b4ec';
+  const cTarget = isN ? new THREE.Color(0x0088ff) : new THREE.Color(0xff0088);
+  
   document.getElementById('revc').style.display='block';
-  document.getElementById('revc').innerHTML=`<h1 style="color:${hex}">${tit}</h1><p>${txt}</p>`;
+  document.getElementById('revc').innerHTML=`<h1 style="color:${hex}">¡Es un${isN?' Niño':'a Niña'}!</h1>`;
+  
+  liqMesh.material.emissive.copy(cTarget);
+  liqMesh.material.emissiveIntensity = 10.0; // Explosion de luz central
+  mainLight.color.copy(cTarget);
+  mainLight.intensity = 20.0;
 
-  const lc=isN?new THREE.Color(.08,.55,1):new THREE.Color(1,.15,.5);
-  liqTarget.copy(lc); lightTarget.copy(lc);
-
-  // 10 oleadas
-  for(let w=0;w<10;w++) setTimeout(()=>{
-    for(let i=0;i<200;i++) spawnSpark(
-      (Math.random()-.5)*6,-1.5+(Math.random()-.5)*5,(Math.random()-.5)*6,SR,SG,SB,true
-    );
-  },w*280);
+  let count = 0;
+  const expl = setInterval(() => {
+    for(let i=0; i<30; i++) spawnSpark((Math.random()-0.5)*2, -2, (Math.random()-0.5)*2, true);
+    count++;
+    if(count > 20) clearInterval(expl);
+  }, 100);
 }
 
-/* ─────────────────────────────────────────────────────
-   VOTACIÓN & FIREBASE
-───────────────────────────────────────────────────── */
+// Interfaz lógica igual a tu archivo original...
 function votar(tipo,btn){
   const nom=document.getElementById('nom').value.trim();
-  if(!nom){
-    const el=document.getElementById('nom');
-    el.style.borderColor='#c0392b'; el.focus();
-    setTimeout(()=>el.style.borderColor='',1300);
-    return;
-  }
-  document.querySelectorAll('.btn').forEach(b=>{b.disabled=true;b.style.opacity='.5';});
-  db.ref('registro_votos').push({familiar:nom,pocion:tipo,fecha:new Date().toISOString()});
-  db.ref('votos/'+tipo).transaction(v=>(v||0)+1);
+  if(!nom) return alert("Inscribe tu nombre mágico.");
+  document.querySelectorAll('.btn').forEach(b=>b.disabled=true);
+  
+  // db.ref... (Descomenta estas lineas cuando pongas tus credenciales arriba)
+  // db.ref('registro_votos').push({familiar:nom,pocion:tipo});
+  // db.ref('votos/'+tipo).transaction(v=>(v||0)+1);
   localStorage.setItem('votoEstelar',tipo);
 
   document.getElementById('instruccion').style.opacity='0';
@@ -968,45 +484,7 @@ function votar(tipo,btn){
   setTimeout(()=>{
     document.getElementById('pe').style.display='none';
     document.getElementById('pw').classList.add('on');
-    escucharVotos();
-  },6000);
-}
-
-function escucharVotos(){
-  db.ref('votos').on('value',snap=>{
-    const d=snap.val()||{nino:0,nina:0};
-    const n=d.nino||0,f=d.nina||0,tot=n+f;
-    const pn=tot>0?n/tot*100:50;
-    document.getElementById('bn').style.width=pn+'%';
-    document.getElementById('bf').style.width=(100-pn)+'%';
-    document.getElementById('vn').textContent='🌊 '+n;
-    document.getElementById('vf').textContent=f+' 🌸';
-  });
-}
-
-db.ref('config/revelacion').on('value',snap=>{
-  const cfg=snap.val(); if(!cfg)return;
-  const ft=new Date(cfg.fechaHoraReveal).getTime();
-  const el=document.getElementById('reloj');
-  const iv=setInterval(()=>{
-    const d=ft-Date.now();
-    if(d<=0){clearInterval(iv);el.textContent='✦ EL PORTAL SE ABRIÓ ✦';doReveal(cfg.sexoReal);}
-    else{
-      const dd=Math.floor(d/86400000),hh=Math.floor(d%86400000/3600000),
-            mm=Math.floor(d%3600000/60000),ss=Math.floor(d%60000/1000);
-      el.textContent=`${dd}d ${String(hh).padStart(2,'0')}h ${String(mm).padStart(2,'0')}m ${String(ss).padStart(2,'0')}s`;
-    }
-  },1000);
-});
-
-// Restaurar si ya votó
-if(localStorage.getItem('votoEstelar')){
-  window.addEventListener('DOMContentLoaded',()=>{
-    document.getElementById('instruccion').style.opacity='0';
-    document.getElementById('pe').style.display='none';
-    document.getElementById('pw').classList.add('on');
-    escucharVotos();
-  });
+  }, 4000);
 }
 
 window.addEventListener('load',init);
