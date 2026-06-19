@@ -12,62 +12,115 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body, html { width: 100%; height: 100%; overflow: hidden; background: #050308; font-family: 'IM Fell English', serif; color: #ebdcb9; }
     
-    /* EL FONDO 2.5D (Efecto Parallax) */
+    /* 1. PANTALLA DE BIENVENIDA (PERGAMINO) */
+    #pantalla-bienvenida {
+        position: fixed; inset: 0; z-index: 100;
+        background: radial-gradient(circle, rgba(10,5,15,0.9) 0%, rgba(0,0,0,1) 100%);
+        display: flex; justify-content: center; align-items: center;
+        transition: opacity 0.8s ease-in-out;
+    }
+    #pergamino-wrapper {
+        position: relative; width: 90vw; max-width: 800px; height: 70vh;
+        display: flex; justify-content: center; align-items: center;
+        perspective: 1000px;
+    }
+    #pergamino-bg {
+        position: absolute; inset: 0;
+        background-image: url('pergamino.png'); 
+        background-size: 100% 100%; background-position: center; background-repeat: no-repeat;
+        filter: drop-shadow(0 0 40px rgba(212, 175, 55, 0.4));
+        transition: transform 0.1s ease-out;
+    }
+    #pergamino-content {
+        position: relative; z-index: 2; width: 70%; text-align: center;
+        color: #3e270e; /* Tono tinta oscura */
+        text-shadow: 0 0 2px rgba(255,255,255,0.3);
+    }
+    #pergamino-content h2 { font-family: 'Cinzel Decorative', serif; font-size: clamp(16pt, 3vw, 24pt); margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid #7a5c38; padding-bottom: 10px;}
+    #pergamino-content p { font-size: clamp(12pt, 2vw, 16pt); line-height: 1.6; margin-bottom: 30px; font-weight: 600; }
+    
+    .btn-entrar {
+        background: linear-gradient(145deg, #5c3a18, #3e270e); color: #f5d76e;
+        border: 2px solid #8c6a40; padding: 15px 30px; font-size: 14pt;
+        font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 2px;
+        border-radius: 8px; cursor: pointer; transition: 0.3s;
+        box-shadow: 0 0 20px rgba(92, 58, 24, 0.6);
+    }
+    .btn-entrar:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(212, 175, 55, 0.8); color: #fff; }
+
+    /* DESTELLO DE TRANSICIÓN */
+    #flash-blanco {
+        position: fixed; inset: 0; background: #fff; z-index: 999;
+        opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out;
+    }
+
+    /* 2. EL FONDO 2.5D (Efecto Parallax Web) */
     #lienzo-fondo {
         position: fixed; top: -5%; left: -5%; width: 110%; height: 110%;
-        background-image: url('fondo.jpg'); /* TU ILUSTRACIÓN OFICIAL AQUÍ */
+        background-image: url('fondo.jpg');
         background-size: cover; background-position: center;
-        z-index: 0; transition: transform 0.2s ease-out; filter: brightness(0.8) contrast(1.1);
+        z-index: 0; transition: transform 0.2s ease-out; filter: brightness(0.8) contrast(1.2);
     }
     
-    /* LA CAPA DE MAGIA (Canvas VFX) */
-    #magia-vfx { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+    /* 3. CAPA DE MAGIA (Canvas VFX) */
+    #magia-vfx { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; mix-blend-mode: screen; }
 
-    /* UI Y CRISTAL */
+    /* 4. UI Y CRISTAL */
     #ui-container { position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 20px; }
     
-    .titulos { text-align: center; background: radial-gradient(circle, rgba(0,0,0,0.6) 0%, transparent 80%); padding: 20px 40px; border-radius: 50%; pointer-events: none;}
-    h1 { font-family: 'Cinzel Decorative', serif; font-size: clamp(18pt, 4vw, 28pt); color: #f5d76e; text-shadow: 0 0 20px #d4af37, 0 0 40px #d4af37; letter-spacing: 4px; }
-    p.subtitulo { font-size: 14pt; color: #d4af37; letter-spacing: 3px; font-style: italic; margin-top: 5px; opacity: 0.8; }
+    .titulos { text-align: center; background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, transparent 70%); padding: 20px 60px; border-radius: 50%; pointer-events: none;}
+    h1 { font-family: 'Cinzel Decorative', serif; font-size: clamp(20pt, 5vw, 32pt); color: #f5d76e; text-shadow: 0 0 30px #d4af37, 0 0 60px #d4af37; letter-spacing: 5px; }
+    p.subtitulo { font-size: 16pt; color: #d4af37; letter-spacing: 4px; font-style: italic; margin-top: 5px; text-shadow: 0 0 10px #000; }
 
     .panel-alquimia {
-        background: rgba(10, 5, 15, 0.65); border: 1px solid rgba(212, 175, 55, 0.3);
-        border-radius: 20px; padding: 30px; width: min(450px, 100%);
-        backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(212, 175, 55, 0.1);
-        text-align: center;
+        background: rgba(5, 2, 10, 0.75); border: 1px solid rgba(212, 175, 55, 0.5);
+        border-radius: 20px; padding: 35px; width: min(480px, 100%);
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 0 80px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(212, 175, 55, 0.2);
+        text-align: center; margin-bottom: 2vh;
     }
 
     .input-magico {
-        width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 10px;
-        color: #fff; font-size: 14pt; font-family: 'IM Fell English', serif;
-        text-align: center; outline: none; transition: 0.3s; margin-bottom: 25px;
+        width: 100%; padding: 18px; background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(212, 175, 55, 0.3); border-radius: 12px;
+        color: #fff; font-size: 15pt; font-family: 'IM Fell English', serif;
+        text-align: center; outline: none; transition: 0.3s; margin-bottom: 30px; letter-spacing: 1px;
     }
-    .input-magico:focus { border-color: #d4af37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+    .input-magico:focus { border-color: #d4af37; box-shadow: 0 0 30px rgba(212, 175, 55, 0.6); background: rgba(255, 255, 255, 0.15); }
 
-    /* BOTONES POCIONES (Tus imágenes) */
-    .pociones-grid { display: flex; justify-content: center; gap: 30px; }
-    .pocion-btn {
-        background: none; border: none; cursor: pointer; position: relative;
-        transition: transform 0.3s, filter 0.3s;
-    }
-    .pocion-btn img { width: 100px; height: auto; border-radius: 10px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); mix-blend-mode: screen; }
-    .pocion-btn:hover { transform: translateY(-10px) scale(1.05); filter: drop-shadow(0 0 20px rgba(255,255,255,0.6)); }
-    .pocion-btn.azul:hover img { filter: drop-shadow(0 0 20px #4fc3f7); }
-    .pocion-btn.rosa:hover img { filter: drop-shadow(0 0 20px #f06292); }
+    .pociones-grid { display: flex; justify-content: center; gap: 40px; }
+    .pocion-btn { background: none; border: none; cursor: pointer; position: relative; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .pocion-btn img { width: 110px; height: auto; border-radius: 15px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); mix-blend-mode: lighten; }
     
-    .pocion-label { font-family: 'Cinzel', serif; font-size: 10pt; color: #ebdcb9; margin-top: 10px; display: block; letter-spacing: 2px; }
+    /* Hover agresivo en botones */
+    .pocion-btn.azul:hover { transform: translateY(-15px) scale(1.1); }
+    .pocion-btn.azul:hover img { filter: drop-shadow(0 0 40px #4fc3f7) brightness(1.2); }
+    .pocion-btn.rosa:hover { transform: translateY(-15px) scale(1.1); }
+    .pocion-btn.rosa:hover img { filter: drop-shadow(0 0 40px #f06292) brightness(1.2); }
+    
+    .pocion-label { font-family: 'Cinzel', serif; font-weight: bold; font-size: 11pt; color: #ebdcb9; margin-top: 15px; display: block; letter-spacing: 2px; text-shadow: 0 0 10px #000; }
 
-    /* PANEL ESPERA */
-    #reloj { font-family: 'Cinzel Decorative', serif; font-size: 26pt; color: #f5d76e; text-shadow: 0 0 30px #d4af37; margin: 15px 0; }
-    .barra-magica { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; display: flex; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-    #barra-azul { height: 100%; background: #4fc3f7; transition: width 1s; box-shadow: 0 0 15px #4fc3f7; }
-    #barra-rosa { height: 100%; background: #f06292; transition: width 1s; box-shadow: 0 0 15px #f06292; }
-
+    #reloj { font-family: 'Cinzel Decorative', serif; font-size: 30pt; color: #f5d76e; text-shadow: 0 0 40px #d4af37; margin: 20px 0; }
+    .barra-magica { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; display: flex; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+    #barra-azul { height: 100%; background: #4fc3f7; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 20px #4fc3f7; }
+    #barra-rosa { height: 100%; background: #f06292; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 20px #f06292; }
 </style>
 </head>
 <body>
+
+<div id="flash-blanco"></div>
+
+<div id="pantalla-bienvenida">
+    <div id="pergamino-wrapper">
+        <div id="pergamino-bg"></div>
+        <div id="pergamino-content">
+            <h2>Llamado a los Guardianes</h2>
+            <p>Viajero de las estrellas, te encuentras ante el umbral de una gran revelación.<br><br>
+               La energía cósmica aguarda en silencio, lista para manifestar su verdadero color. Inscribe tu nombre en la historia y vierte tu magia en la caldera del destino.</p>
+            <button class="btn-entrar" onclick="iniciarRitual()">Desvelar el Destino</button>
+        </div>
+    </div>
+</div>
 
 <div id="lienzo-fondo"></div>
 
@@ -94,7 +147,7 @@
     </div>
 
     <div class="panel-alquimia" id="panel-espera" style="display:none;">
-        <p class="subtitulo">La Magia se acumula en el centro...</p>
+        <p class="subtitulo">La Magia colisiona en el cosmos...</p>
         <div id="reloj">Sincronizando...</div>
         <div class="barra-magica">
             <div id="barra-azul" style="width: 50%;"></div>
@@ -104,143 +157,246 @@
 </div>
 
 <script>
-    /* 1. CONFIGURACIÓN DE FIREBASE (Reemplaza con las tuyas) */
-    const firebaseConfig = {
-       apiKey: "AIzaSyAivQlUAXmdyMgO-7TWrHeLQQlRyqg_JrU",
-       authDomain: "cronica-de-un-alma-estelar.firebaseapp.com",
-       databaseURL: "https://cronica-de-un-alma-estelar-default-rtdb.europe-west1.firebasedatabase.app",
-       projectId: "cronica-de-un-alma-estelar",
-       storageBucket: "cronica-de-un-alma-estelar.firebasestorage.app",
-       messagingSenderId: "843947866862",
-       appId: "1:843947866862:web:2f9c2805009444a71b91ff"
+    /* =========================================
+       1. FIREBASE (CONFIGURACIÓN REAL)
+       ========================================= */
+    const firebaseConfig = { 
+        apiKey: "TU_API_KEY", 
+        authDomain: "TU_DOMINIO.firebaseapp.com",
+        databaseURL: "https://TU_BD.firebaseio.com", 
+        projectId: "TU_ID" 
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    /* 2. PARALLAX DEL FONDO */
-    const fondo = document.getElementById('lienzo-fondo');
+    /* =========================================
+       2. TRANSICIÓN Y PARALLAX (Pergamino y Fondo)
+       ========================================= */
+    const pergaminoBg = document.getElementById('pergamino-bg');
+    const fondoBase = document.getElementById('lienzo-fondo');
+    
     window.addEventListener('mousemove', (e) => {
-        const x = (e.clientX / window.innerWidth - 0.5) * 20; // 20px de movimiento max
-        const y = (e.clientY / window.innerHeight - 0.5) * 20;
-        fondo.style.transform = `translate(${-x}px, ${-y}px)`;
+        const x = (e.clientX / window.innerWidth - 0.5);
+        const y = (e.clientY / window.innerHeight - 0.5);
+        
+        // Parallax del pergamino
+        if(pergaminoBg) {
+            pergaminoBg.style.transform = `rotateX(${y * -15}deg) rotateY(${x * 15}deg) translateZ(20px)`;
+        }
+        // Parallax agresivo del fondo
+        fondoBase.style.transform = `translate(${x * -40}px, ${y * -40}px) scale(1.05)`;
     });
 
-    /* 3. MOTOR DE MAGIA VISUAL (CANVAS 2D VFX) */
+    function iniciarRitual() {
+        const flash = document.getElementById('flash-blanco');
+        const bienvenida = document.getElementById('pantalla-bienvenida');
+        
+        flash.style.opacity = '1'; // Pantallazo blanco
+        
+        setTimeout(() => {
+            bienvenida.style.display = 'none'; // Ocultar pergamino
+            flash.style.opacity = '0'; // Desvanecer blanco
+            
+            // Si ya había votado antes, ir directo al reloj
+            if(localStorage.getItem('votoEstelar')) {
+                document.getElementById('panel-voto').style.display = 'none';
+                document.getElementById('panel-espera').style.display = 'block';
+                escucharVotos();
+            }
+        }, 600);
+    }
+
+    /* =========================================
+       3. MOTOR VFX AGRESIVO (Canvas 2D)
+       ========================================= */
     const canvas = document.getElementById('magia-vfx');
     const ctx = canvas.getContext('2d');
     let W = canvas.width = window.innerWidth;
     let H = canvas.height = window.innerHeight;
     
     let particulas = [];
-    let pulsosEnergia = [];
+    let cometas = [];
+    let shockwaves = [];
     
-    // Polvo de estrellas ambiental
+    // Polvo Estelar Brillante
     class PolvoEstelar {
         constructor() {
             this.x = Math.random() * W; this.y = Math.random() * H;
-            this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5 - 0.2;
-            this.size = Math.random() * 2; this.alpha = Math.random();
+            this.vx = (Math.random() - 0.5) * 1; this.vy = (Math.random() - 0.5) * 1 - 0.5;
+            this.size = Math.random() * 2.5 + 0.5; this.alpha = Math.random();
+            this.pulse = Math.random() * 0.1;
         }
         update() {
             this.x += this.vx; this.y += this.vy;
-            if(this.y < 0) this.y = H;
-            if(this.x < 0) this.x = W; else if(this.x > W) this.x = 0;
-            ctx.fillStyle = `rgba(212, 175, 55, ${this.alpha})`;
+            this.alpha += Math.sin(Date.now() * this.pulse) * 0.05;
+            if(this.y < 0) this.y = H; if(this.x < 0) this.x = W; else if(this.x > W) this.x = 0;
+            
+            ctx.fillStyle = `rgba(255, 230, 150, ${Math.max(0, Math.min(1, this.alpha))})`;
+            ctx.shadowBlur = 10; ctx.shadowColor = '#d4af37';
             ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0; // reset
         }
     }
-    for(let i=0; i<150; i++) particulas.push(new PolvoEstelar());
+    for(let i=0; i<100; i++) particulas.push(new PolvoEstelar());
 
-    // Haz de magia hacia el centro
+    // Cometa Serpenteante con Estela Larga
     class CometaMagico {
         constructor(startX, startY, color) {
             this.x = startX; this.y = startY;
-            this.targetX = W/2; this.targetY = H/2; // Centro de la imagen
+            this.targetX = W/2; this.targetY = H/2 - 50; 
             this.color = color;
             this.progreso = 0;
+            this.historial = []; // Para dibujar la estela
+            this.offset = Math.random() * Math.PI * 2; // Para serpenteo
         }
         update() {
-            this.progreso += 0.02;
-            const ease = 1 - Math.pow(1 - this.progreso, 3); // Aceleración fluida
-            const currentX = this.x + (this.targetX - this.x) * ease;
-            const currentY = this.y + (this.targetY - this.y) * ease;
+            this.historial.push({x: this.x, y: this.y});
+            if(this.historial.length > 25) this.historial.shift(); // Longitud de la estela
+
+            this.progreso += 0.012; // Velocidad del cometa
+            const ease = 1 - Math.pow(1 - this.progreso, 4); 
             
-            // Dibujar destello
-            ctx.globalCompositeOperation = 'lighter';
-            let grad = ctx.createRadialGradient(currentX, currentY, 0, currentX, currentY, 20);
-            grad.addColorStop(0, '#fff'); grad.addColorStop(0.2, this.color); grad.addColorStop(1, 'transparent');
-            ctx.fillStyle = grad;
-            ctx.beginPath(); ctx.arc(currentX, currentY, 20, 0, Math.PI*2); ctx.fill();
+            // Matemáticas para vuelo en espiral errático
+            const curvaX = Math.sin(this.progreso * 10 + this.offset) * 100 * (1 - this.progreso);
+            const curvaY = Math.cos(this.progreso * 10 + this.offset) * 100 * (1 - this.progreso);
+
+            this.x = startX + (this.targetX - startX) * ease + curvaX;
+            this.y = startY + (this.targetY - startY) * ease + curvaY;
             
-            return this.progreso >= 1; // Retorna true si llegó
+            // Dibujar Estela
+            if(this.historial.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(this.historial[0].x, this.historial[0].y);
+                for(let i=1; i<this.historial.length; i++) {
+                    ctx.lineTo(this.historial[i].x, this.historial[i].y);
+                }
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = 30; ctx.shadowColor = this.color;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            // Cabeza del cometa
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(this.x, this.y, 6, 0, Math.PI*2); ctx.fill();
+            
+            return this.progreso >= 1; 
         }
     }
 
-    let glowCentroColor = 'transparent';
-    let glowCentroAlpha = 0;
+    // Onda Expansiva (Impacto masivo)
+    class OndaExpansiva {
+        constructor(x, y, color) {
+            this.x = x; this.y = y;
+            this.radio = 10;
+            this.color = color;
+            this.alpha = 1;
+            this.grosor = 20;
+        }
+        update() {
+            this.radio += 25; // Expansión muy rápida
+            this.alpha -= 0.03;
+            this.grosor -= 0.5;
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radio, 0, Math.PI*2);
+            ctx.strokeStyle = `rgba(${this.color}, ${Math.max(0, this.alpha)})`;
+            ctx.lineWidth = Math.max(1, this.grosor);
+            ctx.shadowBlur = 20; ctx.shadowColor = `rgba(${this.color}, 1)`;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            return this.alpha <= 0;
+        }
+    }
+
+    let resplandorCentroAlpha = 0;
+    let resplandorCentroColor = '255,255,255';
 
     function renderizarMagia() {
         ctx.clearRect(0, 0, W, H);
-        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalCompositeOperation = 'screen';
         
-        // Dibujar polvo ambiental
         particulas.forEach(p => p.update());
 
-        // Dibujar brillo en el centro (donde se acumula la magia)
-        if(glowCentroAlpha > 0) {
-            ctx.globalCompositeOperation = 'lighter';
-            let g = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 300);
-            g.addColorStop(0, glowCentroColor); g.addColorStop(1, 'transparent');
-            ctx.globalAlpha = glowCentroAlpha;
-            ctx.fillStyle = g;
-            ctx.beginPath(); ctx.arc(W/2, H/2, 300, 0, Math.PI*2); ctx.fill();
-            ctx.globalAlpha = 1;
-            glowCentroAlpha -= 0.005; // Se desvanece suavemente
-        }
-
-        // Dibujar proyectiles de magia
-        for (let i = pulsosEnergia.length - 1; i >= 0; i--) {
-            if (pulsosEnergia[i].update()) {
-                // Cuando el proyectil llega al centro, explota en brillo
-                glowCentroColor = pulsosEnergia[i].color === '#4fc3f7' ? 'rgba(79, 195, 247, 0.8)' : 'rgba(240, 98, 146, 0.8)';
-                glowCentroAlpha = 1;
-                pulsosEnergia.splice(i, 1);
+        // Actualizar cometas
+        for (let i = cometas.length - 1; i >= 0; i--) {
+            if (cometas[i].update()) {
+                // EXPLOSIÓN: Cuando el cometa llega al centro
+                const rgb = cometas[i].color === '#4fc3f7' ? '79, 195, 247' : '240, 98, 146';
+                resplandorCentroColor = rgb;
+                resplandorCentroAlpha = 1.5; // Sobre-exposición
+                
+                // Disparar múltiples ondas expansivas
+                shockwaves.push(new OndaExpansiva(cometas[i].targetX, cometas[i].targetY, rgb));
+                setTimeout(() => shockwaves.push(new OndaExpansiva(cometas[i].targetX, cometas[i].targetY, rgb)), 100);
+                
+                cometas.splice(i, 1);
             }
         }
+
+        // Actualizar ondas expansivas
+        for (let i = shockwaves.length - 1; i >= 0; i--) {
+            if (shockwaves[i].update()) shockwaves.splice(i, 1);
+        }
+
+        // Resplandor residual masivo en el centro
+        if(resplandorCentroAlpha > 0) {
+            let g = ctx.createRadialGradient(W/2, H/2 - 50, 0, W/2, H/2 - 50, W/1.5);
+            g.addColorStop(0, `rgba(${resplandorCentroColor}, ${resplandorCentroAlpha})`); 
+            g.addColorStop(1, 'transparent');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, W, H);
+            resplandorCentroAlpha -= 0.015; // Lenta desaparición
+        }
+
         requestAnimationFrame(renderizarMagia);
     }
     renderizarMagia();
 
-    /* 4. LÓGICA DE VOTACIÓN Y ANIMACIÓN */
+    /* =========================================
+       4. VOTACIÓN Y CONEXIÓN FIREBASE
+       ========================================= */
     function lanzarMagia(tipo, event) {
         const nom = document.getElementById('nombre-familiar').value.trim();
-        if(!nom) return alert("Por favor, inscribe tu nombre en el pergamino.");
+        if(!nom) return alert("Por favor, inscribe tu nombre mágico en el pergamino.");
 
-        // Crear haz de luz desde donde se hizo clic
         const btnRect = event.currentTarget.getBoundingClientRect();
         const startX = btnRect.left + btnRect.width / 2;
         const startY = btnRect.top + btnRect.height / 2;
         const colorLuz = tipo === 'nino' ? '#4fc3f7' : '#f06292';
         
-        // Disparar 3 cometas mágicos
-        for(let i=0; i<3; i++) {
-            setTimeout(() => pulsosEnergia.push(new CometaMagico(startX, startY, colorLuz)), i * 150);
+        // Disparar enjambre de 8 cometas agresivos
+        for(let i=0; i<8; i++) {
+            setTimeout(() => cometas.push(new CometaMagico(startX, startY, colorLuz)), i * 80);
         }
 
-        // Firebase logic...
-        // db.ref('registro_votos').push({familiar:nom, pocion:tipo});
-        // db.ref('votos/'+tipo).transaction(v=>(v||0)+1);
+        // REGISTRO EN FIREBASE (DESCOMENTADO Y FUNCIONAL)
+        try {
+            db.ref('registro_votos').push({
+                familiar: nom,
+                pocion: tipo,
+                fecha: new Date().toISOString()
+            });
+            db.ref('votos/' + tipo).transaction((valorActual) => {
+                return (valorActual || 0) + 1;
+            });
+        } catch (e) {
+            console.error("Asegúrate de colocar tus credenciales de Firebase correctamente en la línea 157", e);
+        }
+
         localStorage.setItem('votoEstelar', tipo);
 
-        // Cambiar paneles tras el efecto
+        // Ocultar botones y mostrar progreso tras la lluvia de estrellas
         setTimeout(() => {
             document.getElementById('panel-voto').style.display = 'none';
             document.getElementById('panel-espera').style.display = 'block';
             escucharVotos();
-        }, 1500);
+        }, 2000);
     }
 
-    /* 5. RESPUESTA DE DATOS */
     function escucharVotos() {
         db.ref('votos').on('value', snap => {
             const d = snap.val() || { nino: 0, nina: 0 };
@@ -252,9 +408,7 @@
         });
     }
 
-    // Adaptar canvas al redimensionar
     window.addEventListener('resize', () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
-
 </script>
 </body>
 </html>
