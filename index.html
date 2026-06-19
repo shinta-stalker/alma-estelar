@@ -19,6 +19,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   z-index:0;will-change:transform;
   filter:brightness(0.92) saturate(1.4) contrast(1.05);
 }
+
+/* Niebla animada para realzar colores */
+#niebla {
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(79,195,247,0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(244,114,182,0.12) 0%, transparent 50%);
+  mix-blend-mode: screen;
+  animation: nieblaAnim 12s infinite alternate ease-in-out;
+}
+@keyframes nieblaAnim {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
 #vignette{
   position:fixed;inset:0;z-index:1;pointer-events:none;
   background:
@@ -33,9 +48,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   display:flex;align-items:center;justify-content:center;
   transition:opacity 1.8s cubic-bezier(.4,0,.2,1);
 }
+/* Transparencia con desenfoque para que se vean los efectos */
 #intro-bg{
   position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% 45%, #100525 0%, #030108 75%);
+  background:rgba(3,1,10,0.35);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
 }
 /* Luz cósmica detrás del pergamino */
 #intro-glow{
@@ -57,55 +74,53 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   65%{transform:translateY(5px) rotate(-.2deg)}
 }
 .perg-parallax{will-change:transform;transition:transform .12s ease-out}
-.perg-wrap{position:relative;width:min(680px,88vw)}
-.perg-wrap img{width:100%;height:auto;display:block;filter:brightness(.88) sepia(.08)}
+.perg-wrap{position:relative;width:min(750px,92vw)}
+.perg-wrap img{width:100%;height:auto;display:block;filter:brightness(.9) sepia(.1)}
 
-/* Texto sobre el pergamino */
+/* Texto sobre el pergamino - Contenido al centro para no salir de los bordes */
 .perg-texto{
-  position:absolute;top:8%;left:9%;right:9%;bottom:8%;
+  position:absolute;top:10%;left:12%;right:12%;bottom:10%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;gap:clamp(6px,1.5vh,14px);
+  text-align:center;gap:clamp(8px,1.8vh,16px);
 }
 .perg-runa{
-  font-family:'Cinzel',serif;font-size:clamp(9pt,1.6vw,11.5pt);
-  color:rgba(100,55,8,.6);letter-spacing:10px;
+  font-family:'Cinzel',serif;font-size:clamp(12pt,2.5vw,16pt);
+  color:#1a0a02;letter-spacing:10px;font-weight:700;
 }
 .perg-titulo{
   font-family:'Cinzel Decorative',serif;font-weight:700;
-  font-size:clamp(10pt,2vw,14.5pt);letter-spacing:3px;
-  color:#1f0c02;
-  text-shadow:0 1px 3px rgba(255,200,100,.4),0 0 20px rgba(212,140,20,.3);
-  animation:tituloPulso 3s ease-in-out infinite;
+  font-size:clamp(16pt,3.5vw,24pt);letter-spacing:3px;
+  color:#0a0300;
+  text-shadow:0 1px 2px rgba(255,255,255,.6);
 }
-@keyframes tituloPulso{0%,100%{text-shadow:0 1px 3px rgba(255,200,100,.4),0 0 18px rgba(212,140,20,.3)}50%{text-shadow:0 1px 4px rgba(255,200,100,.6),0 0 35px rgba(212,140,20,.55)}}
-.perg-div{font-family:'Cinzel',serif;font-size:7pt;color:rgba(100,55,8,.45);letter-spacing:4px}
+.perg-div{font-family:'Cinzel',serif;font-size:9pt;color:rgba(100,55,8,.6);letter-spacing:4px; font-weight: bold;}
 .perg-cuerpo{
   font-family:'IM Fell English',serif;font-style:italic;
-  font-size:clamp(8.5pt,1.5vw,10.5pt);
-  color:#2d1205;line-height:1.75;
+  font-size:clamp(12pt,2.2vw,15.5pt);
+  color:#1a0a02;line-height:1.6;font-weight:600;
 }
-.perg-cuerpo em{font-style:normal;color:#6b2e04;font-weight:600}
+.perg-cuerpo em{font-style:normal;color:#5a1f01;font-weight:800}
 .perg-llamada{
-  font-family:'Cinzel',serif;font-size:clamp(8pt,1.4vw,9.5pt);
-  letter-spacing:2px;color:#2a0e02;
+  font-family:'Cinzel',serif;font-size:clamp(11pt,2vw,14pt);
+  letter-spacing:2px;color:#0a0300;font-weight:700;
 }
 .btn-entrar{
   margin-top:clamp(4px,1vh,10px);
-  background:linear-gradient(145deg,rgba(80,30,5,.75),rgba(40,12,2,.65));
-  border:1.5px solid rgba(212,140,20,.7);
+  background:linear-gradient(145deg,rgba(80,30,5,.85),rgba(40,12,2,.75));
+  border:1.5px solid rgba(212,140,20,.8);
   border-radius:8px;
-  padding:clamp(9px,1.5vh,14px) clamp(18px,3vw,32px);
+  padding:clamp(10px,1.5vh,16px) clamp(20px,3.5vw,36px);
   color:#f5d76e;
-  font-family:'Cinzel',serif;font-size:clamp(8pt,1.5vw,10.5pt);
+  font-family:'Cinzel',serif;font-size:clamp(10pt,1.8vw,13pt); font-weight:bold;
   letter-spacing:3px;cursor:pointer;
   transition:all .3s;
   text-shadow:0 0 15px rgba(212,175,55,.8);
-  box-shadow:0 0 20px rgba(212,140,20,.2),inset 0 1px 0 rgba(255,200,80,.12);
+  box-shadow:0 0 20px rgba(212,140,20,.3),inset 0 1px 0 rgba(255,200,80,.2);
 }
 .btn-entrar:hover{
-  background:linear-gradient(145deg,rgba(120,50,8,.9),rgba(70,22,4,.8));
-  box-shadow:0 0 35px rgba(212,175,55,.55),0 0 70px rgba(212,140,20,.25);
-  transform:translateY(-3px) scale(1.03);
+  background:linear-gradient(145deg,rgba(120,50,8,.95),rgba(70,22,4,.85));
+  box-shadow:0 0 35px rgba(212,175,55,.65),0 0 70px rgba(212,140,20,.35);
+  transform:translateY(-3px) scale(1.05);
 }
 .btn-entrar:active{transform:scale(.97)}
 
@@ -117,40 +132,40 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
 }
 .titulo-bloque{text-align:center;pointer-events:none}
 .titulo-bloque h1{
-  font-family:'Cinzel Decorative',serif;font-weight:400;
-  font-size:clamp(10pt,2.2vw,15pt);letter-spacing:5px;
+  font-family:'Cinzel Decorative',serif;font-weight:700;
+  font-size:clamp(14pt,3vw,22pt);letter-spacing:5px;
   color:#f7e47a;
-  text-shadow:0 0 18px rgba(212,175,55,1),0 0 50px rgba(212,175,55,.6),0 0 100px rgba(212,175,55,.25);
+  text-shadow:0 0 18px rgba(212,175,55,1),0 0 50px rgba(212,175,55,.6),0 0 100px rgba(212,175,55,.3);
 }
 .titulo-bloque p{
   font-family:'IM Fell English',serif;font-style:italic;
-  font-size:clamp(7.5pt,1.3vw,9.5pt);color:rgba(212,175,55,.55);
-  letter-spacing:3px;margin-top:4px;
+  font-size:clamp(10pt,1.8vw,13pt);color:rgba(212,175,55,.8);
+  letter-spacing:3px;margin-top:6px;
 }
 
 /* ═══ PANEL ═══ */
 .panel{
   background:rgba(3,1,10,.85);
   border:1px solid rgba(212,175,55,.32);border-radius:16px;
-  padding:19px 24px 17px;width:min(500px,92vw);
+  padding:24px 28px 22px;width:min(500px,92vw);
   backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   box-shadow:0 0 0 1px rgba(212,175,55,.06),0 0 55px rgba(0,0,0,.8),
              0 0 110px rgba(212,175,55,.07),inset 0 1px 0 rgba(255,255,255,.08);
   text-align:center;
 }
 .panel-label{
-  font-family:'Cinzel',serif;font-size:8pt;letter-spacing:3px;
-  color:rgba(212,175,55,.45);text-transform:uppercase;margin-bottom:14px;
+  font-family:'Cinzel',serif;font-size:clamp(9pt,1.5vw,11pt);letter-spacing:3px;
+  color:rgba(212,175,55,.65);text-transform:uppercase;margin-bottom:14px;font-weight:bold;
 }
 .campo{
-  width:100%;padding:11px 16px;background:rgba(255,255,255,.055);
-  border:1px solid rgba(212,175,55,.26);border-radius:9px;
-  color:#fff;font-size:11pt;font-family:'IM Fell English',serif;
-  text-align:center;outline:none;margin-bottom:16px;
+  width:100%;padding:14px 18px;background:rgba(255,255,255,.055);
+  border:1px solid rgba(212,175,55,.4);border-radius:9px;
+  color:#fff;font-size:13pt;font-family:'IM Fell English',serif;
+  text-align:center;outline:none;margin-bottom:20px;
   transition:border-color .3s,box-shadow .3s;
 }
-.campo::placeholder{color:rgba(255,255,255,.2)}
-.campo:focus{border-color:rgba(212,175,55,.65);box-shadow:0 0 22px rgba(212,175,55,.22)}
+.campo::placeholder{color:rgba(255,255,255,.3)}
+.campo:focus{border-color:rgba(212,175,55,.8);box-shadow:0 0 22px rgba(212,175,55,.35)}
 
 /* ═══ POCIONES ═══ */
 .pociones-row{display:flex;justify-content:center;gap:clamp(20px,5vw,52px);align-items:flex-end}
@@ -162,38 +177,38 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
 .pocion-btn:hover{transform:translateY(-16px) scale(1.1)}
 .pocion-btn:active{transform:scale(.95)}
 .pocion-btn img{
-  width:clamp(90px,13vw,148px);height:auto;
+  width:clamp(100px,15vw,160px);height:auto;
   mix-blend-mode:screen;
   filter:drop-shadow(0 0 10px rgba(0,0,0,.6));
   transition:filter .35s;
 }
 .pocion-btn.azul:hover img{filter:drop-shadow(0 0 28px #4fc3f7) drop-shadow(0 0 60px rgba(79,195,247,.65))}
 .pocion-btn.rosa:hover img{filter:drop-shadow(0 0 28px #f472b6) drop-shadow(0 0 60px rgba(244,114,182,.65))}
-.pocion-label{font-family:'Cinzel',serif;font-size:clamp(7pt,1.4vw,9pt);letter-spacing:2px;transition:color .3s,text-shadow .3s}
-.pocion-btn.azul .pocion-label{color:rgba(79,195,247,.72)}
-.pocion-btn.rosa .pocion-label{color:rgba(244,114,182,.72)}
+.pocion-label{font-family:'Cinzel',serif;font-weight:bold;font-size:clamp(9pt,1.6vw,12pt);letter-spacing:2px;transition:color .3s,text-shadow .3s}
+.pocion-btn.azul .pocion-label{color:rgba(79,195,247,.8)}
+.pocion-btn.rosa .pocion-label{color:rgba(244,114,182,.8)}
 .pocion-btn.azul:hover .pocion-label{color:#4fc3f7;text-shadow:0 0 14px rgba(79,195,247,.9)}
 .pocion-btn.rosa:hover .pocion-label{color:#f472b6;text-shadow:0 0 14px rgba(244,114,182,.9)}
 
 /* ═══ PANEL ESPERA ═══ */
 #reloj{
-  font-family:'Cinzel Decorative',serif;font-size:clamp(15pt,3.5vw,22pt);
+  font-family:'Cinzel Decorative',serif;font-size:clamp(18pt,4.5vw,28pt);
   letter-spacing:3px;color:#f7e47a;margin:5px 0 14px;
-  text-shadow:0 0 30px rgba(212,175,55,.9),0 0 60px rgba(212,175,55,.35);
+  text-shadow:0 0 30px rgba(212,175,55,.9),0 0 60px rgba(212,175,55,.45);
 }
-.barra-wrap{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;display:flex}
-#b-azul{height:100%;background:#4fc3f7;box-shadow:0 0 14px #4fc3f7,0 0 28px rgba(79,195,247,.5);transition:width 1.5s ease}
-#b-rosa{height:100%;background:#f472b6;box-shadow:0 0 14px #f472b6,0 0 28px rgba(244,114,182,.5);transition:width 1.5s ease}
-.votos-txt{display:flex;justify-content:space-between;font-size:7.5pt;margin-top:6px;color:rgba(212,175,55,.45);font-family:'Cinzel',serif;letter-spacing:1px}
+.barra-wrap{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;display:flex}
+#b-azul{height:100%;background:#4fc3f7;box-shadow:0 0 14px #4fc3f7,0 0 28px rgba(79,195,247,.6);transition:width 1.5s ease}
+#b-rosa{height:100%;background:#f472b6;box-shadow:0 0 14px #f472b6,0 0 28px rgba(244,114,182,.6);transition:width 1.5s ease}
+.votos-txt{display:flex;justify-content:space-between;font-size:9.5pt;margin-top:8px;color:rgba(212,175,55,.65);font-family:'Cinzel',serif;letter-spacing:1px;font-weight:bold;}
 
 /* ═══ REVELACIÓN ═══ */
 #revc{display:none;margin-top:14px}
 #revc h1{
   font-family:'Cinzel Decorative',serif;font-weight:700;
-  font-size:clamp(17pt,4.5vw,28pt);letter-spacing:3px;
+  font-size:clamp(20pt,5.5vw,34pt);letter-spacing:3px;
   animation:revGlow 1.6s ease-in-out infinite alternate;
 }
-#revc p{font-family:'IM Fell English',serif;font-size:10.5pt;line-height:1.75;color:#c8b898;margin-top:9px;font-style:italic}
+#revc p{font-family:'IM Fell English',serif;font-size:12.5pt;line-height:1.75;color:#ebdcb9;margin-top:12px;font-style:italic}
 @keyframes revGlow{
   from{text-shadow:0 0 25px currentColor,0 0 60px currentColor}
   to{text-shadow:0 0 65px currentColor,0 0 140px currentColor,0 0 280px currentColor}
@@ -202,15 +217,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
 </head>
 <body>
 
-<!-- AUDIO -->
 <audio id="bgm" loop preload="auto"><source src="audio_fondo.mp3" type="audio/mpeg"></audio>
 
-<!-- FONDO PRINCIPAL -->
 <div id="bg"></div>
+<div id="niebla"></div>
 <div id="vignette"></div>
 <canvas id="vfx"></canvas>
 
-<!-- ══════════ INTRO SCREEN ══════════ -->
 <div id="intro">
   <div id="intro-bg"></div>
   <div id="intro-glow"></div>
@@ -233,14 +246,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
           </p>
           <p class="perg-div">⋆ ──── ⋆ ──── ⋆</p>
           <p class="perg-llamada">Tu magia escribirá el destino eterno.</p>
-          <button class="btn-entrar" onclick="entrar()">✦ &nbsp; Deposita tu Profecía &nbsp; ✦</button>
+          <button class="btn-entrar" onclick="entrar()">✦ &nbsp; Aceptar y Avanzar &nbsp; ✦</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════ UI PRINCIPAL ══════════ -->
 <div id="ui">
   <div class="titulo-bloque">
     <h1>Crónica de un Alma Estelar</h1>
@@ -306,8 +318,10 @@ let revealDone=false;
 let hoveredBtn=null;
 
 /* ════════════════════════════════════════════════
-   VISUAL STATE
+   VISUAL STATE & PERSISTENT VEIL
 ════════════════════════════════════════════════ */
+let baseTintA = 0; // Velo persistente base (0.15 al votar)
+
 const V={
   glowR:260,glowA:0.22,glowPulse:0,
   glowCR:212,glowCG:175,glowCB:55,
@@ -315,17 +329,12 @@ const V={
   tintA:0,tintCR:255,tintCG:255,tintCB:255,
   revA:0,revCR:255,revCG:255,revCB:255,
 };
-// Reveal continuous beam
 const RB={on:false,angle:0,cr:0,cg:0,cb:0,alpha:0,rings:0};
 
-/* ════════════════════════════════════════════════
-   PARTICLE POOL
-════════════════════════════════════════════════ */
 const POOL=1200;
 const pool=Array.from({length:POOL},()=>({
   on:false,x:0,y:0,vx:0,vy:0,life:0,ml:0,r:0,
-  cr:255,cg:255,cb:255,
-  type:'d',
+  cr:255,cg:255,cb:255,type:'d',
   t:0,vt:0,sx:0,sy:0,ex:0,ey:0,cpx:0,cpy:0
 }));
 const FREE=()=>pool.find(p=>!p.on);
@@ -387,7 +396,6 @@ function spReveal(cr,cg,cb){
     p.ml=p.life=80+Math.random()*150;
   }
 }
-// Intro sparkles
 function spIntroSpark(){
   const p=FREE();if(!p)return;
   p.on=true;p.type='i';
@@ -401,7 +409,6 @@ function spIntroSpark(){
   p.ml=p.life=120+Math.random()*200;
 }
 
-/* ─ GLOW HELPER ─ */
 function glow(x,y,r,cr,cg,cb,a){
   if(a<=0||r<=0)return;
   ctx.save();ctx.globalCompositeOperation='lighter';
@@ -413,13 +420,11 @@ function glow(x,y,r,cr,cg,cb,a){
   ctx.restore();
 }
 
-/* ─ SHOCKWAVES ─ */
 let shocks=[];
 function shock(x,y,cr,cg,cb,big=false){
   shocks.push({x,y,r:big?25:12,maxR:big?Math.max(W,H)*1.05:380,cr,cg,cb,a:big?.95:.75,lw:big?5:3});
 }
 
-/* ─ BOLT ─ */
 let bolt={on:false,x1:0,y1:0,a:0,cr:0,cg:0,cb:0};
 function fireBolt(x,y,cr,cg,cb){bolt={on:true,x1:x,y1:y,a:1,cr,cg,cb};}
 function drawBolt(){
@@ -446,14 +451,17 @@ function drawBolt(){
   }
 }
 
-/* ─ SHOOTING STAR ─ */
-let star=null;
+/* ─ SHOOTING STARS (NUEVO SISTEMA MULTIPLE) ─ */
+let stars=[];
 function newStar(){
-  if(star)return;
-  star={x:Math.random()*W*.7,y:-20,vx:5+Math.random()*6,vy:3+Math.random()*3.5,a:1,trail:[]};
+  const left=Math.random()>.5;
+  const sx=left?-80:W+80;
+  const sy=Math.random()*H*0.4; // Mitad superior de la pantalla
+  const vx=(left?1:-1)*(10+Math.random()*15); // Mucho más rápidas y grandes
+  const vy=2+Math.random()*6;
+  stars.push({x:sx,y:sy,vx,vy,a:1,trail:[]});
 }
 
-/* ─ BEAM STATE ─ */
 let beamOn=false,beamTick=0,beamX=0,beamY=0,bCR=79,bCG=195,bCB=247;
 
 /* ════════════════════════════════════════════════
@@ -463,7 +471,6 @@ function render(){
   requestAnimationFrame(render);
   frame++;
 
-  // Parallax siempre activo
   mx+=(tmx-mx)*.065;my+=(tmy-my)*.065;
   bgEl.style.transform=`translate(${-mx}px,${-my}px)`;
 
@@ -471,7 +478,6 @@ function render(){
 
   if(phase==='intro'){renderIntro();return;}
 
-  /* ── GLOW CENTRAL ── */
   V.glowPulse+=.022;
   const pa=V.glowA*(0.65+0.35*Math.sin(V.glowPulse));
   const pr=V.glowR*(0.88+0.12*Math.sin(V.glowPulse*.58));
@@ -479,7 +485,6 @@ function render(){
   glow(CX(),CY(),pr*2.1,V.glowCR,V.glowCG,V.glowCB,pa*.2);
   glow(CX(),CY(),pr*.42,V.glowCR,V.glowCG,V.glowCB,pa*.65);
 
-  /* ── REVEAL: HACES DE LUZ ROTATIVOS (épico continuo) ── */
   if(RB.on){
     RB.angle+=.006;
     RB.alpha=Math.min(RB.alpha+.008,.9);
@@ -499,12 +504,10 @@ function render(){
       ctx.strokeStyle=bg2;ctx.lineWidth=4+Math.sin(frame*.04+b)*2;ctx.lineCap='butt';
       ctx.shadowBlur=30;ctx.shadowColor=`rgba(${RB.cr},${RB.cg},${RB.cb},${RB.alpha*.6})`;
       ctx.beginPath();ctx.moveTo(CX(),CY());ctx.lineTo(x2,y2);ctx.stroke();
-      // Halo del haz
       ctx.lineWidth=(4+Math.sin(frame*.04+b)*2)*18;ctx.globalAlpha=RB.alpha*.07;ctx.shadowBlur=0;ctx.stroke();
       ctx.restore();
     }
 
-    // Partículas continuas desde el centro
     if(frame%2===0){
       for(let i=0;i<8;i++){
         const p=FREE();if(!p)continue;
@@ -516,7 +519,6 @@ function render(){
         p.cr=RB.cr;p.cg=RB.cg;p.cb=RB.cb;
         p.ml=p.life=90+Math.random()*130;
       }
-      // También blancas brillantes
       for(let i=0;i<4;i++){
         const p=FREE();if(!p)continue;
         p.on=true;p.type='b';p.x=CX();p.y=CY();
@@ -526,20 +528,15 @@ function render(){
         p.ml=p.life=60+Math.random()*80;
       }
     }
-
-    // Anillos expansivos cada 65 frames
     if(frame%65===0) shock(CX(),CY(),RB.cr,RB.cg,RB.cb,false);
 
-    // Glow súper potente
     const rp=280+Math.sin(frame*.04)*55;
     glow(CX(),CY(),rp,RB.cr,RB.cg,RB.cb,.55+.2*Math.sin(frame*.05));
     glow(CX(),CY(),rp*.4,255,255,255,.3+.15*Math.sin(frame*.08));
   }
 
-  /* ── BOLT ── */
   drawBolt();
 
-  /* ── BEAM STREAM ── */
   if(beamOn){
     beamTick--;
     for(let i=0;i<9;i++) spStream(beamX,beamY,bCR,bCG,bCB);
@@ -552,11 +549,11 @@ function render(){
       shock(CX(),CY(),255,255,255,false);
       shock(CX(),CY(),bCR,bCG,bCB,false);
       V.flashA=.85;V.flashCR=bCR;V.flashCG=bCG;V.flashCB=bCB;
-      V.tintA=.12;V.tintCR=bCR;V.tintCG=bCG;V.tintCB=bCB;
+      V.tintA=.8;V.tintCR=bCR;V.tintCG=bCG;V.tintCB=bCB;
+      baseTintA = 0.18; // Activar el velo persistente después de votar
     }
   }
 
-  /* ── SHOCKWAVES ── */
   for(let i=shocks.length-1;i>=0;i--){
     const s=shocks[i];
     s.r+=s.maxR>400?20:13;s.a-=s.maxR>400?.008:.02;
@@ -569,7 +566,6 @@ function render(){
     ctx.restore();
   }
 
-  /* ── PARTÍCULAS ── */
   pool.forEach(p=>{
     if(!p.on)return;
     p.life--;const pf=p.life/p.ml;
@@ -614,7 +610,6 @@ function render(){
     }
   });
 
-  /* ── HOVER GLOW ── */
   if(hoveredBtn){
     const el=document.getElementById('btn-'+hoveredBtn);
     if(el){
@@ -626,20 +621,23 @@ function render(){
     }
   }
 
-  /* ── FLASH ── */
   if(V.flashA>0){
     V.flashA=Math.max(0,V.flashA-.02);
     ctx.save();ctx.globalCompositeOperation='lighter';
     ctx.fillStyle=`rgba(${V.flashCR},${V.flashCG},${V.flashCB},${V.flashA})`;
     ctx.fillRect(0,0,W,H);ctx.restore();
   }
-  /* ── TINTE ── */
-  if(V.tintA>0){
+  
+  /* ── TINTE (VELO PERSISTENTE) ── */
+  if(V.tintA > baseTintA){
+    V.tintA = Math.max(baseTintA, V.tintA-.015);
+  }
+  if(V.tintA > 0){
     ctx.save();
     ctx.fillStyle=`rgba(${V.tintCR},${V.tintCG},${V.tintCB},${V.tintA})`;
     ctx.fillRect(0,0,W,H);ctx.restore();
   }
-  /* ── OVERLAY REVELACIÓN ── */
+
   if(V.revA>0){
     ctx.save();ctx.globalCompositeOperation='lighter';
     const rg=ctx.createRadialGradient(CX(),CY(),0,CX(),CY(),Math.max(W,H)*.9);
@@ -649,38 +647,36 @@ function render(){
     ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);ctx.restore();
   }
 
-  /* ── SHOOTING STAR ── */
-  if(star){
-    star.trail.push({x:star.x,y:star.y});
-    if(star.trail.length>32)star.trail.shift();
-    star.x+=star.vx;star.y+=star.vy;star.a-=.011;
+  /* ── NUEVAS ESTRELLAS FUGACES MASIVAS ── */
+  for(let i=stars.length-1; i>=0; i--){
+    let st=stars[i];
+    st.trail.push({x:st.x,y:st.y});
+    if(st.trail.length>55)st.trail.shift();
+    st.x+=st.vx;st.y+=st.vy;st.a-=.008;
     ctx.save();ctx.globalCompositeOperation='lighter';
-    for(let i=0;i<star.trail.length;i++){
-      const t=i/star.trail.length;
-      ctx.fillStyle=`rgba(255,248,220,${t*star.a*.9})`;
-      ctx.beginPath();ctx.arc(star.trail[i].x,star.trail[i].y,2*t,0,Math.PI*2);ctx.fill();
+    for(let j=0;j<st.trail.length;j++){
+      const t=j/st.trail.length;
+      ctx.fillStyle=`rgba(255,250,220,${t*st.a})`;
+      ctx.beginPath();ctx.arc(st.trail[j].x,st.trail[j].y,4.5*t,0,Math.PI*2);ctx.fill();
     }
-    glow(star.x,star.y,16,255,248,200,star.a*.65);
+    glow(st.x,st.y,35,255,250,220,st.a*.8); // Destello grande en la cabeza
     ctx.restore();
-    if(star.x>W+90||star.y>H+90||star.a<=0)star=null;
+    if(st.x<-150||st.x>W+150||st.y>H+150||st.a<=0)stars.splice(i,1);
   }
 
-  /* ── SPAWN AMBIENT ── */
   const dc=pool.filter(p=>p.on&&p.type==='d').length;
   if(dc<175)spDust();
   if(frame%160===0&&pool.filter(p=>p.on&&p.type==='w').length<10)spWisp();
-  if(frame%380===0)newStar();
+  if(frame%75===0)newStar(); // Estrellas fugaces salen mucho más seguido
 }
 
 /* ════════════════════════════════════════════════
    INTRO RENDER
 ════════════════════════════════════════════════ */
 function renderIntro(){
-  // Glow detrás del pergamino
   glow(CX(),CY()+H*.02,Math.min(W,H)*.55,140,60,255,.32+.1*Math.sin(frame*.025));
   glow(CX(),CY()+H*.02,Math.min(W,H)*.28,212,175,55,.28+.12*Math.sin(frame*.035));
 
-  // Intro sparkles: type 'i'
   pool.forEach(p=>{
     if(!p.on||p.type!=='i')return;
     p.life--;p.x+=p.vx;p.y+=p.vy;
@@ -694,7 +690,6 @@ function renderIntro(){
     ctx.restore();
   });
 
-  // Destellos de luz en el pergamino (rayos desde el centro)
   if(frame%4===0){
     const RAYS=8;
     for(let i=0;i<RAYS;i++){
@@ -712,19 +707,13 @@ function renderIntro(){
     }
   }
 
-  // Parallax del pergamino
   const px=document.getElementById('perg-px');
   if(px) px.style.transform=`translate(${mx*.35}px,${my*.25}px)`;
 
-  // Spawn
   if(frame%2===0&&pool.filter(p=>p.on&&p.type==='i').length<100)spIntroSpark();
 }
 
-/* ════════════════════════════════════════════════
-   INTRO → MAIN
-════════════════════════════════════════════════ */
 function entrar(){
-  // Iniciar audio (se necesita gesto del usuario)
   const bgm=document.getElementById('bgm');
   bgm.volume=0.38;
   bgm.play().catch(()=>{});
@@ -733,15 +722,10 @@ function entrar(){
   intro.style.opacity='0';
   intro.style.pointerEvents='none';
 
-  // Limpiar partículas de intro
   pool.forEach(p=>{if(p.type==='i')p.on=false;});
-
   setTimeout(()=>{intro.style.display='none';phase='main';},1800);
 }
 
-/* ════════════════════════════════════════════════
-   HOVER LISTENERS
-════════════════════════════════════════════════ */
 ['azul','rosa'].forEach(t=>{
   const el=document.getElementById('btn-'+t);
   if(!el)return;
@@ -784,12 +768,14 @@ function lanzarMagia(tipo,btnEl){
   },3200);
 }
 
-/* ════════════════════════════════════════════════
-   REVELACIÓN ÉPICA
-════════════════════════════════════════════════ */
 function doReveal(sexo){
   if(revealDone)return;revealDone=true;
   phase='reveal';
+  
+  // ASEGURAR OCULTAR FORMULARIO
+  document.getElementById('panel-voto').style.display='none';
+  document.getElementById('panel-espera').style.display='block';
+
   const isN=sexo==='nino';
   const cr=isN?79:244,cg=isN?195:114,cb=isN?247:182;
   const hex=isN?'#7ec0ee':'#f4b4ec';
@@ -800,12 +786,12 @@ function doReveal(sexo){
   document.getElementById('revc').style.display='block';
   document.getElementById('revc').innerHTML=`<h1 style="color:${hex}">${tit}</h1><p>${txt}</p>`;
 
-  // Iniciar haces rotativos continuos
   RB.on=true;RB.angle=0;RB.cr=cr;RB.cg=cg;RB.cb=cb;RB.alpha=0;
 
   V.glowCR=cr;V.glowCG=cg;V.glowCB=cb;V.glowA=.7;V.glowR=400;
   V.revCR=cr;V.revCG=cg;V.revCB=cb;V.revA=.45;
   V.flashA=.95;V.flashCR=cr;V.flashCG=cg;V.flashCB=cb;
+  baseTintA=0; // Limpiamos el velo durante la revelación máxima
 
   for(let w=0;w<18;w++) setTimeout(()=>{
     spReveal(cr,cg,cb);
@@ -814,9 +800,6 @@ function doReveal(sexo){
   },w*200);
 }
 
-/* ════════════════════════════════════════════════
-   FIREBASE LISTENERS
-════════════════════════════════════════════════ */
 function escucharVotos(){
   db.ref('votos').on('value',snap=>{
     const d=snap.val()||{nino:0,nina:0};
@@ -835,7 +818,11 @@ db.ref('config/revelacion').on('value',snap=>{
   const el=document.getElementById('reloj');
   const iv=setInterval(()=>{
     const d=ft-Date.now();
-    if(d<=0){clearInterval(iv);el.textContent='✦ EL PORTAL SE ABRIÓ ✦';doReveal(cfg.sexoReal);}
+    if(d<=0){
+      clearInterval(iv);
+      el.textContent='✦ EL PORTAL SE ABRIÓ ✦';
+      doReveal(cfg.sexoReal);
+    }
     else{
       const dd=Math.floor(d/86400000),hh=Math.floor(d%86400000/3600000),
             mm=Math.floor(d%3600000/60000),ss=Math.floor(d%60000/1000);
@@ -846,7 +833,11 @@ db.ref('config/revelacion').on('value',snap=>{
 
 if(localStorage.getItem('votoEstelar')){
   window.addEventListener('DOMContentLoaded',()=>{
-    // Entrar directo sin intro
+    const tipo = localStorage.getItem('votoEstelar');
+    const isN = tipo==='nino';
+    V.tintCR = isN?79:244; V.tintCG = isN?195:114; V.tintCB = isN?247:182;
+    V.tintA = baseTintA = 0.15; // Cargar el velo de quien ya votó
+
     document.getElementById('intro').style.display='none';
     phase='main';
     document.getElementById('panel-voto').style.display='none';
