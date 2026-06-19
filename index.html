@@ -148,7 +148,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   letter-spacing:4px;margin-top:8px;
 }
 
-/* ═══ PANEL ═══ */
+/* ═══ PANELES CON TRANSICIONES ═══ */
 .panel{
   background:rgba(3,1,10,.85);
   border:1px solid rgba(212,175,55,.4);border-radius:20px;
@@ -157,6 +157,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   box-shadow:0 0 60px rgba(0,0,0,.9), inset 0 1px 20px rgba(212,175,55,.15);
   text-align:center;
 }
+#panel-voto { transition: opacity 0.6s ease; opacity: 1; }
+#panel-espera { transition: opacity 0.8s ease; opacity: 0; }
+
 .panel-label{
   font-family:'Cinzel',serif;font-size:clamp(10pt,1.8vw,12pt);letter-spacing:4px;
   color:rgba(212,175,55,.8);text-transform:uppercase;margin-bottom:18px;font-weight:bold;
@@ -294,8 +297,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
         <p class="perg-cuerpo">
           Hemos llegado a un nuevo capítulo en nuestro viaje.<br>
           La semilla cósmica que comenzó a latir en el silencio,<br>está lista para revelar su misterio.<br><br>
-          ¿Será la fuerza tranquila de un <em class="em-nino">Guardián</em>,<br>
-          o la luz protectora de una <em class="em-nina">Niña de las Estrellas</em>?<br><br>
+          ¿Será la fuerza tranquila de un <em class="em-nino">Guardián estelar</em>,<br>
+          o la luz de una <em class="em-nina">Protectora cósmica</em>?<br><br>
           Te invitamos a ser parte del relato.<br>
           <em>Vierte tu intuición en nuestro oráculo.</em>
         </p>
@@ -315,7 +318,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
 
   <div class="panel" id="panel-voto">
     <p class="panel-label">Inscribe tu nombre y elige el eco de tu corazón</p>
-    <input type="text" id="nombre" class="campo" placeholder="Tu nombre mágico" maxlength="28" autocomplete="off">
+    <input type="text" id="nombre" class="campo" placeholder="Tu nombre" maxlength="28" autocomplete="off">
     <div class="pociones-row">
       <button class="pocion-btn azul" id="btn-azul" onclick="lanzarMagia('nino',this)">
         <img src="pocion-azul.webp" alt="Guardián Estelar">
@@ -328,7 +331,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
     </div>
   </div>
 
-  <div class="panel" id="panel-espera" style="display:none">
+  <div class="panel" id="panel-espera" style="display:none; opacity:0;">
     <p class="panel-label">La Tinta ya está en el Pergamino</p>
     <p class="panel-sub">Tus deseos se han entrelazado con nuestra historia.<br>La página se revelará ante todos en:</p>
     <div id="reloj">Invocando…</div>
@@ -346,7 +349,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
     <h3 class="modal-titulo">Las Voces del Destino</h3>
     <p class="modal-sub">Familiares que han vertido su magia</p>
     <div id="lista-ecos">
-      </div>
+    </div>
     <button class="btn-cerrar" onclick="cerrarEcos()">Ocultar Ecos</button>
   </div>
 </div>
@@ -407,7 +410,7 @@ const pool=Array.from({length:POOL},()=>({
 }));
 const FREE=()=>pool.find(p=>!p.on);
 
-/* ─ SPAWNERS (MÁS GRANDES Y BRILLANTES) ─ */
+/* ─ SPAWNERS ─ */
 function spDust(){
   const p=FREE();if(!p)return;
   p.on=true;p.type='d';
@@ -796,7 +799,7 @@ function entrar(){
 });
 
 /* ════════════════════════════════════════════════
-   VOTACIÓN
+   VOTACIÓN - EFECTO CINE
 ════════════════════════════════════════════════ */
 function lanzarMagia(tipo,btnEl){
   const nom=document.getElementById('nombre').value.trim();
@@ -806,28 +809,49 @@ function lanzarMagia(tipo,btnEl){
     setTimeout(()=>el.style.borderColor='',1400);
     return;
   }
+  
   document.querySelectorAll('.pocion-btn').forEach(b=>{b.disabled=true;b.style.opacity='.45';});
 
   const isN=tipo==='nino';
   bCR=isN?79:244;bCG=isN?195:114;bCB=isN?247:182;
+  
+  // Obtener coordenadas de la poción ANTES de ocultarla
   const rc=btnEl.getBoundingClientRect();
   beamX=rc.left+rc.width/2;beamY=rc.top+rc.height/2;
 
-  spBurst(beamX,beamY,bCR,bCG,bCB,130,2.0);
-  spBurst(beamX,beamY,255,255,255,50,1.2);
-  V.flashA=.75;V.flashCR=bCR;V.flashCG=bCG;V.flashCB=bCB;
-  fireBolt(beamX,beamY,bCR,bCG,bCB);
-  beamOn=true;beamTick=105;
+  const panelVoto = document.getElementById('panel-voto');
+  const panelEspera = document.getElementById('panel-espera');
 
-  db.ref('registro_votos').push({familiar:nom,pocion:tipo,fecha:new Date().toISOString()});
-  db.ref('votos/'+tipo).transaction(v=>(v||0)+1);
-  localStorage.setItem('votoEstelar',tipo);
+  // 1. Ocultar el panel de votación
+  panelVoto.style.opacity = '0';
+  panelVoto.style.pointerEvents = 'none';
 
-  setTimeout(()=>{
-    document.getElementById('panel-voto').style.display='none';
-    document.getElementById('panel-espera').style.display='block';
-    escucharVotos();
-  },3200);
+  // 2. Disparar efectos en pantalla limpia tras el fade out
+  setTimeout(() => {
+    panelVoto.style.display = 'none';
+    
+    // EXPLOSIÓN MÁGICA
+    spBurst(beamX,beamY,bCR,bCG,bCB,130,2.0);
+    spBurst(beamX,beamY,255,255,255,50,1.2);
+    V.flashA=.75;V.flashCR=bCR;V.flashCG=bCG;V.flashCB=bCB;
+    fireBolt(beamX,beamY,bCR,bCG,bCB);
+    beamOn=true;beamTick=105;
+
+    db.ref('registro_votos').push({familiar:nom,pocion:tipo,fecha:new Date().toISOString()});
+    db.ref('votos/'+tipo).transaction(v=>(v||0)+1);
+    localStorage.setItem('votoEstelar',tipo);
+
+    // 3. Mostrar nuevo panel cuando el efecto empieza a desvanecerse (aprox 2.2s)
+    setTimeout(()=>{
+      panelEspera.style.display = 'block';
+      // Pequeño retardo para asegurar que el navegador registre el display:block
+      setTimeout(() => {
+        panelEspera.style.opacity = '1';
+        escucharVotos();
+      }, 50);
+    }, 2200);
+
+  }, 600); // 600ms es el tiempo exacto que tarda en desvanecer el panel CSS
 }
 
 function doReveal(sexo){
@@ -836,6 +860,7 @@ function doReveal(sexo){
   
   document.getElementById('panel-voto').style.display='none';
   document.getElementById('panel-espera').style.display='block';
+  document.getElementById('panel-espera').style.opacity='1';
 
   const isN=sexo==='nino';
   const cr=isN?79:244,cg=isN?195:114,cb=isN?247:182;
@@ -881,7 +906,7 @@ db.ref('config/revelacion').on('value',snap=>{
     const d=ft-Date.now();
     if(d<=0){
       clearInterval(iv);
-      el.textContent='✦ EL PORTAL SE ABRIÓ ✦';
+      el.textContent='✦ LA PÁGINA SE HA REVELADO ✦';
       doReveal(cfg.sexoReal);
     }
     else{
@@ -904,6 +929,7 @@ if(localStorage.getItem('votoEstelar')){
     phase='main';
     document.getElementById('panel-voto').style.display='none';
     document.getElementById('panel-espera').style.display='block';
+    document.getElementById('panel-espera').style.opacity='1'; // Aseguramos que sea visible
     escucharVotos();
 
     const bgm = document.getElementById('bgm');
@@ -931,7 +957,6 @@ function abrirEcos() {
       return;
     }
 
-    // Convertir a array y mostrar los más recientes arriba
     const votos = Object.values(datos).reverse();
     
     votos.forEach(v => {
