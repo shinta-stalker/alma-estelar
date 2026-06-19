@@ -105,7 +105,15 @@
 
 <script>
     /* 1. CONFIGURACIÓN DE FIREBASE (Reemplaza con las tuyas) */
-    const firebaseConfig = { apiKey: "TU_API_KEY", databaseURL: "https://TU_BD.firebaseio.com", projectId: "TU_ID" };
+    const firebaseConfig = {
+       apiKey: "AIzaSyAivQlUAXmdyMgO-7TWrHeLQQlRyqg_JrU",
+       authDomain: "cronica-de-un-alma-estelar.firebaseapp.com",
+       databaseURL: "https://cronica-de-un-alma-estelar-default-rtdb.europe-west1.firebasedatabase.app",
+       projectId: "cronica-de-un-alma-estelar",
+       storageBucket: "cronica-de-un-alma-estelar.firebasestorage.app",
+       messagingSenderId: "843947866862",
+       appId: "1:843947866862:web:2f9c2805009444a71b91ff"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
