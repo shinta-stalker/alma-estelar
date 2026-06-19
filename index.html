@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crónica de un Alma Estelar — El Ritual del Destino</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        /* ─── RESET & BASE ─── */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --oro:        #d4af37;
+            --oro-tenue:  rgba(212,175,55,0.18);
+            --oro-borde:  rgba(212,175,55,0.55);
+            --pergamino:  rgba(14, 10, 22, 0.78);
+            --texto:      #f0e2c0;
+            --texto-sub:  #b8a98a;
+            --azul-nino:  #4fc3f7;
+            --rosa-nina:  #e391e8;
+            --azul-nino-glow: rgba(79,195,247,0.55);
+            --rosa-nina-glow: rgba(227,145,232,0.55);
+        }
+
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #050308;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: var(--texto);
+            user-select: none;
+        }
+
+        /* ─── CANVAS LAYER ─── */
+        #canvas-contenedor {
+            position: fixed; inset: 0; z-index: 1;
+        }
+
+        /* ─── PARTICLE CANVAS (2D overlay) ─── */
+        #canvas-particulas {
+            position: fixed; inset: 0; z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ─── UI LAYER ─── */
+        #ui-layer {
+            position: fixed; inset: 0; z-index: 10;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* ─── PANEL CRISTAL ─── */
+        .panel {
+            background: var(--pergamino);
+            border: 1px solid var(--oro-borde);
+            border-radius: 16px;
+            padding: 38px 40px 34px;
+            width: min(420px, 92vw);
+            text-align: center;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow:
+                0 0 40px rgba(212,175,55,0.12),
+                inset 0 0 30px rgba(212,175,55,0.04);
+            display: none;
+        }
+        .panel.activo { display: block; }
+
+        /* Ornamento superior */
+        .panel::before {
+            content: '✦ ✦ ✦';
+            display: block;
+            color: var(--oro);
+            font-size: 10pt;
+            letter-spacing: 8px;
+            margin-bottom: 18px;
+            opacity: 0.7;
+        }
+
+        /* ─── TIPOGRAFÍA ─── */
+        .titulo-ritual {
+            font-size: clamp(15pt, 4vw, 19pt);
+            font-weight: normal;
+            letter-spacing: 2px;
+            color: #f8eecc;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .subtitulo {
+            font-size: 9.5pt;
+            color: var(--texto-sub);
+            letter-spacing: 1px;
+            margin-bottom: 26px;
+            font-style: italic;
+        }
+
+        /* ─── INPUT ─── */
+        .campo-nombre {
+            width: 100%;
+            padding: 13px 16px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(212,175,55,0.35);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 11pt;
+            font-family: 'Georgia', serif;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            margin-bottom: 28px;
+        }
+        .campo-nombre::placeholder { color: rgba(255,255,255,0.3); }
+        .campo-nombre:focus {
+            border-color: var(--oro);
+            box-shadow: 0 0 12px rgba(212,175,55,0.25);
+        }
+
+        /* ─── BOTONES POCIÓN ─── */
+        .fila-pociones {
+            display: flex; gap: 14px;
+        }
+
+        .boton-pocion {
+            flex: 1;
+            padding: 18px 10px 16px;
+            border-radius: 10px;
+            font-size: 11pt;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        .boton-pocion::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .boton-pocion:active { transform: scale(0.96); }
+
+        .pocion-nino {
+            background: linear-gradient(145deg, rgba(30,80,140,0.55), rgba(20,50,100,0.35));
+            color: var(--azul-nino);
+            border-color: rgba(79,195,247,0.45);
+        }
+        .pocion-nino:hover {
+            box-shadow: 0 0 22px var(--azul-nino-glow), 0 0 6px var(--azul-nino-glow) inset;
+            transform: translateY(-2px);
+        }
+
+        .pocion-nina {
+            background: linear-gradient(145deg, rgba(100,30,120,0.55), rgba(70,20,90,0.35));
+            color: var(--rosa-nina);
+            border-color: rgba(227,145,232,0.45);
+        }
+        .pocion-nina:hover {
+            box-shadow: 0 0 22px var(--rosa-nina-glow), 0 0 6px var(--rosa-nina-glow) inset;
+            transform: translateY(-2px);
+        }
+
+        .icono-pocion {
+            display: block;
+            font-size: 22pt;
+            margin-bottom: 6px;
+        }
+
+        /* ─── PANEL ESPERA ─── */
+        .texto-oraculo {
+            font-size: 10.5pt;
+            color: var(--texto-sub);
+            line-height: 1.8;
+            margin-bottom: 22px;
+            font-style: italic;
+        }
+
+        #reloj-cuenta {
+            font-size: clamp(18pt, 5vw, 26pt);
+            letter-spacing: 3px;
+            color: var(--oro);
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 20px rgba(212,175,55,0.5);
+            margin: 0;
+        }
+
+        .linea-divisora {
+            border: none;
+            border-top: 1px solid var(--oro-borde);
+            margin: 22px 0;
+            opacity: 0.5;
+        }
+
+        /* ─── PANEL REVELACIÓN ─── */
+        #texto-revelacion h1 {
+            font-size: clamp(22pt, 6vw, 34pt);
+            font-weight: normal;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px currentColor;
+            animation: pulsoTexto 2s ease-in-out infinite alternate;
+        }
+
+        #texto-revelacion p {
+            margin-top: 14px;
+            font-size: 12pt;
+            line-height: 1.7;
+            color: var(--texto-sub);
+            font-style: italic;
+        }
+
+        @keyframes pulsoTexto {
+            from { opacity: 0.85; text-shadow: 0 0 20px currentColor; }
+            to   { opacity: 1;    text-shadow: 0 0 45px currentColor, 0 0 80px currentColor; }
+        }
+
+        /* ─── INDICADOR DE ENERGÍA ─── */
+        #barra-energia-contenedor {
+            margin-top: 20px;
+        }
+
+        .label-energia {
+            font-size: 8pt;
+            letter-spacing: 2px;
+            color: var(--texto-sub);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        #barra-energia {
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 2px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        #barra-nino {
+            height: 100%;
+            background: linear-gradient(90deg, #2980b9, var(--azul-nino));
+            transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 0 8px var(--azul-nino-glow);
+        }
+        #barra-nina {
+            height: 100%;
+            background: linear-gradient(90deg, #9b59b6, var(--rosa-nina));
+            transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 0 8px var(--rosa-nina-glow);
+        }
+
+        .texto-recuento {
+            display: flex;
+            justify-content: space-between;
+            font-size: 8.5pt;
+            margin-top: 7px;
+            color: var(--texto-sub);
+            letter-spacing: 1px;
+        }
+
+        /* ─── FADE IN ─── */
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .panel.activo {
+            animation: aparecer 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+        }
+
+        /* ─── CURSOR MÁGICO ─── */
+        body { cursor: crosshair; }
+    </style>
+</head>
+<body>
+
+    <!-- CANVAS THREE.JS -->
+    <div id="canvas-contenedor"></div>
+
+    <!-- CANVAS 2D PARA PARTÍCULAS DE ALQUIMIA -->
+    <canvas id="canvas-particulas"></canvas>
+
+    <!-- UI -->
+    <div id="ui-layer">
+
+        <!-- PANEL 1: ENTRADA -->
+        <div class="panel activo" id="panel-entrada">
+            <p class="titulo-ritual">El Ritual del Destino</p>
+            <p class="subtitulo">Vierte tu magia en el Gran Orbe</p>
+            <input
+                type="text"
+                id="nombre-familiar"
+                class="campo-nombre"
+                placeholder="Inscribe tu nombre mágico"
+                maxlength="30"
+                autocomplete="off"
+            >
+            <div class="fila-pociones">
+                <button class="boton-pocion pocion-nino" onclick="realizarVoto('nino', this)">
+                    <span class="icono-pocion">🌊</span>
+                    Poción<br>del Guardián
+                </button>
+                <button class="boton-pocion pocion-nina" onclick="realizarVoto('nina', this)">
+                    <span class="icono-pocion">🌸</span>
+                    Poción<br>de la Protectora
+                </button>
+            </div>
+        </div>
+
+        <!-- PANEL 2: ESPERA CON CUENTA ATRÁS -->
+        <div class="panel" id="panel-espera">
+            <p class="titulo-ritual">Tu magia ha sido vertida</p>
+            <p class="texto-oraculo">
+                El orbe acumula la energía de la familia.<br>
+                La gran revelación ocurrirá en:
+            </p>
+            <div id="reloj-cuenta">Invocando oráculo…</div>
+
+            <hr class="linea-divisora">
+
+            <div id="barra-energia-contenedor">
+                <p class="label-energia">Energía acumulada</p>
+                <div id="barra-energia">
+                    <div id="barra-nino" style="width: 50%"></div>
+                    <div id="barra-nina" style="width: 50%"></div>
+                </div>
+                <div class="texto-recuento">
+                    <span id="texto-nino">🌊 0</span>
+                    <span id="texto-nina">0 🌸</span>
+                </div>
+            </div>
+
+            <!-- Panel revelación embebido aquí -->
+            <div id="texto-revelacion" style="display:none; margin-top: 20px;"></div>
+        </div>
+
+    </div><!-- /ui-layer -->
+
+
+<script>
+/* ════════════════════════════════════════════════════════
+   0. FIREBASE
+════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+    apiKey:      "AIzaSyAivQlUAXmdyMgO-7TWrHeLQQlRyqg_JrU",
+    authDomain:  "cronica-de-un-alma-estelar.firebaseapp.com",
+    databaseURL: "https://cronica-de-un-alma-estelar-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:   "cronica-de-un-alma-estelar",
+    storageBucket: "cronica-de-un-alma-estelar.firebasestorage.app",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+
+/* ════════════════════════════════════════════════════════
+   1. THREE.JS — ESCENA PRINCIPAL
+════════════════════════════════════════════════════════ */
+let escena, camara, renderizador;
+let planoCielo, orbeMesh, aniloParticulas;
+let mouse = { x: 0, y: 0 };
+let mouseTarget = { x: 0, y: 0 };
+const PROF_MAX = 0.04; // parallax strength
+
+// Colores del orbe
+let orbeColorActual = new THREE.Color(0.22, 0.15, 0.32);
+let orbeColorMeta   = new THREE.Color(0.22, 0.15, 0.32);
+
+// Partículas de fondo (polvo de estrellas)
+let polvoPuntos;
+
+function iniciarUniverso() {
+    const cont = document.getElementById('canvas-contenedor');
+
+    escena  = new THREE.Scene();
+    camara  = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1000);
+    camara.position.z = 5;
+
+    renderizador = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderizador.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderizador.setSize(innerWidth, innerHeight);
+    renderizador.setClearColor(0x050308);
+    cont.appendChild(renderizador.domElement);
+
+    crearFondoIlustracion();
+    crearPolvoEstrellas();
+    crearOrbe();
+    crearAnilloParticulas();
+
+    window.addEventListener('resize', enRedimension);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('deviceorientation', onGiro);
+
+    animarEscena();
+}
+
+/* ─── FONDO: ILUSTRACIÓN CON PARALLAX ─── */
+const vertexShaderParallax = `
+    varying vec2 vUv;
+    void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+`;
+
+const fragmentShaderParallax = `
+    uniform sampler2D uTextura;
+    uniform vec2      uMouse;
+    uniform float     uTiempo;
+    varying vec2      vUv;
+
+    // Ruido suave para efecto niebla sutil
+    float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+    float noise(vec2 p) {
+        vec2 i = floor(p); vec2 f = fract(p);
+        f = f*f*(3.0-2.0*f);
+        return mix(
+            mix(hash(i), hash(i+vec2(1,0)), f.x),
+            mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x),
+            f.y
+        );
+    }
+
+    void main() {
+        // Parallax offset: capas de profundidad
+        vec2 uv = vUv;
+
+        // La gota central se mueve menos (más "lejos"), el fondo más
+        float distCentro = length(uv - 0.5);
+        float profundidad = 1.0 - smoothstep(0.0, 0.45, distCentro); // 1 en centro, 0 en bordes
+
+        // Desplazamiento parallax
+        vec2 despl = uMouse * 0.025 * (1.0 - profundidad * 0.5);
+        uv -= despl;
+
+        // Distorsión de niebla ondulante mínima
+        float n = noise(uv * 3.5 + uTiempo * 0.07) * 0.004;
+        uv += vec2(n, n * 0.6);
+
+        // Pulso de brillo en el centro
+        float brillo = 1.0 + 0.07 * sin(uTiempo * 1.4) * profundidad;
+
+        vec4 color = texture2D(uTextura, uv);
+        color.rgb *= brillo;
+
+        // Viñeta muy suave
+        float vig = smoothstep(0.95, 0.35, distCentro);
+        color.rgb *= mix(0.7, 1.0, vig);
+
+        gl_FragColor = color;
+    }
+`;
+
+function crearFondoIlustracion() {
+    const loader = new THREE.TextureLoader();
+    // La imagen debe estar en la misma carpeta que index.html
+    loader.load(
+        'fondo.png',
+        (tex) => {
+            const ratio = innerWidth / innerHeight;
+            const imgRatio = 2816 / 1536; // dimensiones reales de la imagen
+            let planeW, planeH;
+
+            if (ratio > imgRatio) {
+                planeW = 10 * ratio;
+                planeH = planeW / imgRatio;
+            } else {
+                planeH = 10 / imgRatio;
+                planeW = planeH * imgRatio;
+            }
+            // Asegurar que cubra siempre
+            planeW = Math.max(planeW, 10 * ratio) * 1.05;
+            planeH = Math.max(planeH, 10) * 1.05;
+
+            const geo = new THREE.PlaneGeometry(planeW, planeH, 1, 1);
+            const mat = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTextura: { value: tex },
+                    uMouse:   { value: new THREE.Vector2(0, 0) },
+                    uTiempo:  { value: 0 },
+                },
+                vertexShader:   vertexShaderParallax,
+                fragmentShader: fragmentShaderParallax,
+            });
+
+            planoCielo = new THREE.Mesh(geo, mat);
+            planoCielo.position.z = -4;
+            escena.add(planoCielo);
+        },
+        undefined,
+        () => {
+            // Fallback si la imagen no carga: fondo estrellado puro
+            console.warn('Ilustración no encontrada — asegúrate de que la imagen esté junto al index.html');
+        }
+    );
+}
+
+/* ─── POLVO DE ESTRELLAS ─── */
+function crearPolvoEstrellas() {
+    const N = 1200;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(N * 3);
+    const sizes = new Float32Array(N);
+
+    for (let i = 0; i < N; i++) {
+        pos[i*3]   = (Math.random() - 0.5) * 20;
+        pos[i*3+1] = (Math.random() - 0.5) * 12;
+        pos[i*3+2] = -3.5 + Math.random() * 1.5;
+        sizes[i]   = Math.random() * 2.5 + 0.5;
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    const mat = new THREE.PointsMaterial({
+        color: 0xd4af37,
+        size: 0.04,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.6,
+    });
+
+    polvoPuntos = new THREE.Points(geo, mat);
+    escena.add(polvoPuntos);
+}
+
+/* ─── ORBE CENTRAL ─── */
+function crearOrbe() {
+    // Geometría interna (glow)
+    const geoGlow = new THREE.SphereGeometry(0.35, 32, 32);
+    const matGlow = new THREE.MeshBasicMaterial({
+        color: 0x3d2a55,
+        transparent: true,
+        opacity: 0.55,
+    });
+    const glowInner = new THREE.Mesh(geoGlow, matGlow);
+
+    // Wireframe orbital
+    const geoWire = new THREE.IcosahedronGeometry(0.52, 1);
+    const matWire = new THREE.MeshBasicMaterial({
+        color: 0xd4af37,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.25,
+    });
+    const wireframe = new THREE.Mesh(geoWire, matWire);
+
+    // Anillo ecuatorial
+    const geoAnillo = new THREE.TorusGeometry(0.62, 0.008, 8, 80);
+    const matAnillo = new THREE.MeshBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.5 });
+    const anillo = new THREE.Mesh(geoAnillo, matAnillo);
+    anillo.rotation.x = Math.PI / 2.5;
+
+    orbeMesh = new THREE.Group();
+    orbeMesh.add(glowInner, wireframe, anillo);
+    orbeMesh.position.set(0, -0.5, -1);
+    escena.add(orbeMesh);
+}
+
+/* ─── ANILLO DE PARTÍCULAS ORBITANDO EL ORBE ─── */
+function crearAnilloParticulas() {
+    const N = 180;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(N * 3);
+    const angInit = new Float32Array(N);
+    const radio = 0.8;
+
+    for (let i = 0; i < N; i++) {
+        const a = (i / N) * Math.PI * 2;
+        pos[i*3]   = Math.cos(a) * radio;
+        pos[i*3+1] = (Math.random() - 0.5) * 0.25;
+        pos[i*3+2] = Math.sin(a) * radio;
+        angInit[i] = a;
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+    const mat = new THREE.PointsMaterial({
+        color: 0xd4af37,
+        size: 0.018,
+        transparent: true,
+        opacity: 0.55,
+    });
+
+    aniloParticulas = new THREE.Points(geo, mat);
+    aniloParticulas.position.copy(orbeMesh.position);
+    aniloParticulas._angInit = angInit;
+    aniloParticulas._N = N;
+    aniloParticulas._radio = radio;
+    escena.add(aniloParticulas);
+}
+
+/* ─── LOOP DE ANIMACIÓN ─── */
+let tiempoInicio = performance.now();
+
+function animarEscena() {
+    requestAnimationFrame(animarEscena);
+
+    const t = (performance.now() - tiempoInicio) / 1000;
+
+    // Suavizado de mouse
+    mouse.x += (mouseTarget.x - mouse.x) * 0.06;
+    mouse.y += (mouseTarget.y - mouse.y) * 0.06;
+
+    // Shader uniforms
+    if (planoCielo) {
+        planoCielo.material.uniforms.uMouse.value.set(mouse.x, mouse.y);
+        planoCielo.material.uniforms.uTiempo.value = t;
+    }
+
+    // Polvo de estrellas: deriva suave
+    if (polvoPuntos) {
+        polvoPuntos.rotation.z = t * 0.015;
+        polvoPuntos.material.opacity = 0.5 + 0.1 * Math.sin(t * 0.7);
+    }
+
+    // Orbe: latido + rotación
+    if (orbeMesh) {
+        const escalaLatido = 1 + 0.03 * Math.sin(t * 2.1);
+        orbeMesh.children[0].scale.setScalar(escalaLatido); // glow
+        orbeMesh.children[1].rotation.x = t * 0.4;
+        orbeMesh.children[1].rotation.y = t * 0.6;
+        orbeMesh.children[2].rotation.z = t * 0.3; // anillo
+
+        // Suavizado de color
+        orbeColorActual.lerp(orbeColorMeta, 0.02);
+        orbeMesh.children[0].material.color.copy(orbeColorActual);
+        orbeMesh.children[1].material.color.copy(orbeColorActual).multiplyScalar(3);
+
+        // Micro-movimiento con mouse
+        orbeMesh.position.x = mouse.x * 0.08;
+        orbeMesh.position.y = -0.5 + mouse.y * 0.06;
+    }
+
+    // Anillo orbital
+    if (aniloParticulas) {
+        const posArr = aniloParticulas.geometry.attributes.position.array;
+        for (let i = 0; i < aniloParticulas._N; i++) {
+            const a = aniloParticulas._angInit[i] + t * 0.4 + i * 0.01;
+            posArr[i*3]   = Math.cos(a) * aniloParticulas._radio + orbeMesh.position.x;
+            posArr[i*3+1] = Math.sin(a * 0.5) * 0.2 - 0.5 + orbeMesh.position.y;
+            posArr[i*3+2] = Math.sin(a) * aniloParticulas._radio - 1;
+        }
+        aniloParticulas.geometry.attributes.position.needsUpdate = true;
+    }
+
+    renderizador.render(escena, camara);
+}
+
+function onMouseMove(e) {
+    mouseTarget.x =  (e.clientX / innerWidth  - 0.5) * 2;
+    mouseTarget.y = -(e.clientY / innerHeight - 0.5) * 2;
+}
+
+function onGiro(e) {
+    if (e.beta == null) return;
+    mouseTarget.x =  (e.gamma || 0) / 30;
+    mouseTarget.y = -(e.beta  - 45)  / 45;
+}
+
+function enRedimension() {
+    camara.aspect = innerWidth / innerHeight;
+    camara.updateProjectionMatrix();
+    renderizador.setSize(innerWidth, innerHeight);
+}
+
+
+/* ════════════════════════════════════════════════════════
+   2. SISTEMA DE PARTÍCULAS ALQUÍMICAS (canvas 2D)
+════════════════════════════════════════════════════════ */
+const cvPart = document.getElementById('canvas-particulas');
+const ctxP   = cvPart.getContext('2d');
+let particulas = [];
+
+function iniciarCanvasParticulas() {
+    cvPart.width  = innerWidth;
+    cvPart.height = innerHeight;
+    window.addEventListener('resize', () => {
+        cvPart.width  = innerWidth;
+        cvPart.height = innerHeight;
+    });
+    animarParticulas();
+}
+
+function animarParticulas() {
+    requestAnimationFrame(animarParticulas);
+    ctxP.clearRect(0, 0, cvPart.width, cvPart.height);
+
+    for (let i = particulas.length - 1; i >= 0; i--) {
+        const p = particulas[i];
+        p.vida -= p.decaimiento;
+        if (p.vida <= 0) { particulas.splice(i, 1); continue; }
+
+        // Gravedad hacia el orbe
+        const ox = cvPart.width  * 0.5 + orbeMesh.position.x * cvPart.width  * 0.065;
+        const oy = cvPart.height * 0.5 - orbeMesh.position.y * cvPart.height * 0.065 + cvPart.height * 0.075;
+        const dx = ox - p.x;
+        const dy = oy - p.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist > 18) {
+            p.vx += dx / dist * p.atraccion;
+            p.vy += dy / dist * p.atraccion;
+        }
+
+        // Turbulencia
+        p.vx += (Math.random() - 0.5) * 0.35;
+        p.vy += (Math.random() - 0.5) * 0.35;
+        p.vx *= 0.94;
+        p.vy *= 0.94;
+        p.x  += p.vx;
+        p.y  += p.vy;
+
+        // Espiral cuando está cerca
+        if (dist < 60) {
+            const angulo = Math.atan2(dy, dx) + 0.18;
+            p.vx = Math.cos(angulo) * dist * 0.07;
+            p.vy = Math.sin(angulo) * dist * 0.07;
+        }
+
+        // Dibujar
+        const alpha = p.vida;
+        const r     = p.radio * p.vida;
+        ctxP.beginPath();
+        ctxP.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctxP.fillStyle = p.color.replace('A', alpha.toFixed(2));
+        ctxP.fill();
+
+        // Estela de luz
+        ctxP.beginPath();
+        ctxP.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
+        ctxP.fillStyle = p.colorGlow.replace('A', (alpha * 0.18).toFixed(2));
+        ctxP.fill();
+    }
+}
+
+function emitirParticulas(tipo, botonEl) {
+    // Posición del botón como origen
+    const rect  = botonEl.getBoundingClientRect();
+    const origX = rect.left + rect.width  / 2;
+    const origY = rect.top  + rect.height / 2;
+
+    const esNino = (tipo === 'nino');
+    const colorSolido = esNino ? 'rgba(79,195,247,A)'    : 'rgba(227,145,232,A)';
+    const colorGlow   = esNino ? 'rgba(41,128,185,A)'    : 'rgba(155,89,182,A)';
+
+    const TOTAL = 120;
+
+    for (let i = 0; i < TOTAL; i++) {
+        const angulo = Math.random() * Math.PI * 2;
+        const vel    = Math.random() * 4 + 1.5;
+        particulas.push({
+            x:          origX,
+            y:          origY,
+            vx:         Math.cos(angulo) * vel,
+            vy:         Math.sin(angulo) * vel - 2,
+            radio:      Math.random() * 3.5 + 1.2,
+            vida:       1,
+            decaimiento: Math.random() * 0.006 + 0.003,
+            atraccion:  0.28 + Math.random() * 0.22,
+            color:      colorSolido,
+            colorGlow:  colorGlow,
+        });
+    }
+
+    // Onda extra desde el orbe en la escena 3D
+    pulsarOrbe(tipo);
+}
+
+/* ─── PULSO DEL ORBE AL VOTAR ─── */
+let escalaMeta = 1;
+let escalaActual = 1;
+
+function pulsarOrbe(tipo) {
+    if (tipo === 'nino') {
+        orbeColorMeta.set(0x1a6cba);
+        aniloParticulas.material.color.set(0x4fc3f7);
+    } else {
+        orbeColorMeta.set(0x8e28b0);
+        aniloParticulas.material.color.set(0xe391e8);
+    }
+
+    // Escala del wireframe: crece suave
+    let s = 1.0;
+    const intervalo = setInterval(() => {
+        s += 0.04;
+        if (orbeMesh) orbeMesh.children[1].scale.setScalar(Math.min(s, 1.6));
+        if (s >= 1.6) clearInterval(intervalo);
+    }, 30);
+}
+
+
+/* ════════════════════════════════════════════════════════
+   3. LÓGICA DE VOTACIÓN
+════════════════════════════════════════════════════════ */
+let yaVoto = localStorage.getItem('votoEstelar');
+
+function verificarEstadoVotacion() {
+    if (yaVoto) {
+        mostrarPanelEspera();
+    }
+}
+
+function realizarVoto(tipo, botonEl) {
+    const nombre = document.getElementById('nombre-familiar').value.trim();
+    if (!nombre) {
+        document.getElementById('nombre-familiar').focus();
+        document.getElementById('nombre-familiar').style.borderColor = '#c0392b';
+        setTimeout(() => {
+            document.getElementById('nombre-familiar').style.borderColor = 'rgba(212,175,55,0.35)';
+        }, 1200);
+        return;
+    }
+
+    // Registrar voto
+    db.ref('registro_votos').push({
+        familiar: nombre,
+        pocion:   tipo,
+        fecha:    new Date().toISOString(),
+    });
+    db.ref('votos/' + tipo).transaction(v => (v || 0) + 1);
+
+    localStorage.setItem('votoEstelar', tipo);
+    yaVoto = tipo;
+
+    // Animación alquímica
+    emitirParticulas(tipo, botonEl);
+
+    // Esperar un momento para la transición (el vertido se ve)
+    setTimeout(mostrarPanelEspera, 1400);
+}
+
+function mostrarPanelEspera() {
+    document.getElementById('panel-entrada').classList.remove('activo');
+    document.getElementById('panel-espera').classList.add('activo');
+    escucharVotos();
+}
+
+/* ─── CONTADORES EN TIEMPO REAL ─── */
+function escucharVotos() {
+    db.ref('votos').on('value', (snap) => {
+        const datos = snap.val() || { nino: 0, nina: 0 };
+        const n = datos.nino || 0;
+        const f = datos.nina || 0;
+        const total = n + f;
+
+        const pn = total > 0 ? (n / total * 100) : 50;
+        const pf = 100 - pn;
+
+        document.getElementById('barra-nino').style.width = pn + '%';
+        document.getElementById('barra-nina').style.width = pf + '%';
+        document.getElementById('texto-nino').textContent = `🌊 ${n}`;
+        document.getElementById('texto-nina').textContent = `${f} 🌸`;
+
+        // Orbe crece con el total
+        if (total > 0 && orbeMesh) {
+            const factorEscala = 1 + total * 0.04;
+            orbeMesh.children[0].scale.setScalar(Math.min(factorEscala, 2.2));
+        }
+    });
+}
+
+
+/* ════════════════════════════════════════════════════════
+   4. RELOJ DE REVELACIÓN
+════════════════════════════════════════════════════════ */
+let secretoRevelado = false;
+
+db.ref('config/revelacion').on('value', (snap) => {
+    const cfg = snap.val();
+    if (!cfg) return;
+    const fechaReveal = new Date(cfg.fechaHoraReveal).getTime();
+    iniciarReloj(fechaReveal, cfg.sexoReal);
+});
+
+function iniciarReloj(fechaReveal, sexoReal) {
+    const el = document.getElementById('reloj-cuenta');
+
+    const tick = setInterval(() => {
+        const distancia = fechaReveal - Date.now();
+
+        if (distancia <= 0) {
+            clearInterval(tick);
+            el.innerHTML = '✦ ¡EL PORTAL SE HA ABIERTO! ✦';
+            if (!secretoRevelado) ejecutarRevelacion(sexoReal);
+        } else {
+            const d = Math.floor(distancia / 86400000);
+            const h = Math.floor((distancia % 86400000) / 3600000);
+            const m = Math.floor((distancia % 3600000)  / 60000);
+            const s = Math.floor((distancia % 60000)    / 1000);
+            el.textContent = `${d}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+        }
+    }, 1000);
+}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+
+/* ════════════════════════════════════════════════════════
+   5. LA GRAN REVELACIÓN
+════════════════════════════════════════════════════════ */
+function ejecutarRevelacion(sexo) {
+    secretoRevelado = true;
+
+    const esNino = (sexo === 'nino');
+    const colorHex   = esNino ? 0x3498db  : 0xe040fb;
+    const colorTexto = esNino ? '#7ec0ee' : '#f4b4ec';
+    const titulo     = esNino ? '¡Es un Niño!' : '¡Es una Niña!';
+    const subtexto   = esNino
+        ? 'Un pequeño Guardián Estelar viene en camino.'
+        : 'Una pequeña Protectora Cósmica viene en camino.';
+
+    // Revelar texto
+    const elRev = document.getElementById('texto-revelacion');
+    elRev.style.display = 'block';
+    elRev.innerHTML = `
+        <h1 style="color:${colorTexto}">${titulo}</h1>
+        <p>${subtexto}</p>
+    `;
+
+    // Explosión del orbe
+    orbeColorMeta.set(colorHex);
+    orbeColorActual.set(colorHex);
+
+    // Expandir wireframe a toda la pantalla
+    let escalaExplosion = 1;
+    const explosionInterval = setInterval(() => {
+        escalaExplosion += 0.8;
+        if (orbeMesh) {
+            orbeMesh.children[0].scale.setScalar(escalaExplosion * 0.6);
+            orbeMesh.children[1].scale.setScalar(escalaExplosion);
+            orbeMesh.children[1].material.opacity = Math.max(0, 0.25 - escalaExplosion * 0.005);
+        }
+        if (escalaExplosion > 60) clearInterval(explosionInterval);
+    }, 30);
+
+    // Lluvia de partículas masiva
+    const centro = {
+        getBoundingClientRect: () => ({
+            left:   innerWidth  * 0.5,
+            top:    innerHeight * 0.5,
+            width:  0,
+            height: 0,
+        })
+    };
+    for (let r = 0; r < 5; r++) {
+        setTimeout(() => emitirParticulasExplosion(sexo), r * 200);
+    }
+}
+
+function emitirParticulasExplosion(tipo) {
+    const esNino = (tipo === 'nino');
+    const colorSolido = esNino ? 'rgba(79,195,247,A)'  : 'rgba(227,145,232,A)';
+    const colorGlow   = esNino ? 'rgba(41,128,185,A)'  : 'rgba(155,89,182,A)';
+
+    for (let i = 0; i < 200; i++) {
+        const angulo = Math.random() * Math.PI * 2;
+        const vel    = Math.random() * 10 + 2;
+        particulas.push({
+            x:          innerWidth  * 0.5,
+            y:          innerHeight * 0.5,
+            vx:         Math.cos(angulo) * vel,
+            vy:         Math.sin(angulo) * vel,
+            radio:      Math.random() * 5 + 1.5,
+            vida:       1,
+            decaimiento: Math.random() * 0.004 + 0.002,
+            atraccion:  0,     // en la explosión no hay gravedad
+            color:      colorSolido,
+            colorGlow:  colorGlow,
+        });
+    }
+}
+
+
+/* ════════════════════════════════════════════════════════
+   6. ARRANQUE
+════════════════════════════════════════════════════════ */
+window.onload = () => {
+    iniciarUniverso();
+    iniciarCanvasParticulas();
+    verificarEstadoVotacion();
+};
+</script>
+</body>
+</html>
