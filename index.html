@@ -1,989 +1,1073 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crónica de un Alma Estelar — El Ritual del Destino</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crónica de un Alma Estelar — El Ritual del Destino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --oro:#d4af37;--oro2:#f5d76e;--oro-dim:rgba(212,175,55,0.3);
+  --azul:#4fc3f7;--azul2:#0d47a1;--azul-glow:rgba(79,195,247,0.7);
+  --rosa:#f06292;--rosa2:#880e4f;--rosa-glow:rgba(240,98,146,0.7);
+  --void:#050308;--cristal:rgba(8,5,16,0.82);
+  --f-display:'Cinzel Decorative',serif;
+  --f-title:'Cinzel',serif;
+  --f-body:'IM Fell English',serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--void);color:#e8d8b0;cursor:crosshair}
+#c3d{position:fixed;inset:0;z-index:1}
 
-    <style>
-        /* ─── RESET & BASE ─── */
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+/* ── UI OVERLAY ── */
+#ui{position:fixed;inset:0;z-index:20;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:3vh}
 
-        :root {
-            --oro:        #d4af37;
-            --oro-tenue:  rgba(212,175,55,0.18);
-            --oro-borde:  rgba(212,175,55,0.55);
-            --pergamino:  rgba(14, 10, 22, 0.78);
-            --texto:      #f0e2c0;
-            --texto-sub:  #b8a98a;
-            --azul-nino:  #4fc3f7;
-            --rosa-nina:  #e391e8;
-            --azul-nino-glow: rgba(79,195,247,0.55);
-            --rosa-nina-glow: rgba(227,145,232,0.55);
-        }
+/* ── TÍTULO SUPERIOR ── */
+#titulo-superior{
+  position:fixed;top:0;left:0;right:0;z-index:21;
+  text-align:center;padding:18px 20px 12px;
+  background:linear-gradient(to bottom,rgba(5,3,8,0.9) 0%,transparent 100%);
+  pointer-events:none;
+}
+#titulo-superior h1{
+  font-family:var(--f-display);font-size:clamp(9pt,2.2vw,13pt);
+  font-weight:400;letter-spacing:4px;color:var(--oro2);
+  text-shadow:0 0 30px rgba(212,175,55,0.6);
+}
+#titulo-superior p{
+  font-family:var(--f-body);font-size:clamp(7.5pt,1.4vw,9pt);
+  color:rgba(212,175,55,0.55);letter-spacing:2px;
+  font-style:italic;margin-top:3px;
+}
 
-        html, body {
-            width: 100%; height: 100%;
-            overflow: hidden;
-            background: #050308;
-            font-family: 'Georgia', 'Times New Roman', serif;
-            color: var(--texto);
-            user-select: none;
-        }
+/* ── PANEL COMPACTO ── */
+.panel{
+  pointer-events:all;
+  background:var(--cristal);
+  border:1px solid rgba(212,175,55,0.4);
+  border-radius:12px;
+  padding:20px 24px 18px;
+  width:min(400px,90vw);
+  text-align:center;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 0 60px rgba(212,175,55,0.1),0 0 120px rgba(212,175,55,0.04),inset 0 1px 0 rgba(255,255,255,0.06);
+  display:none;transition:opacity 0.5s;
+}
+.panel.activo{display:block;animation:fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
-        /* ─── CANVAS LAYER ─── */
-        #canvas-contenedor {
-            position: fixed; inset: 0; z-index: 1;
-        }
+.panel-titulo{
+  font-family:var(--f-display);font-size:clamp(10pt,2.5vw,13pt);
+  font-weight:400;letter-spacing:2px;color:#f5e6c0;
+  margin-bottom:4px;
+}
+.panel-sub{
+  font-family:var(--f-body);font-size:8.5pt;color:rgba(212,175,55,0.6);
+  font-style:italic;letter-spacing:1px;margin-bottom:14px;
+}
+.separador{border:none;border-top:1px solid rgba(212,175,55,0.2);margin:12px 0}
 
-        /* ─── PARTICLE CANVAS (2D overlay) ─── */
-        #canvas-particulas {
-            position: fixed; inset: 0; z-index: 2;
-            pointer-events: none;
-        }
+/* ── INPUT NOMBRE ── */
+.campo{
+  width:100%;padding:10px 14px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(212,175,55,0.3);
+  border-radius:7px;color:#fff;
+  font-size:10.5pt;font-family:var(--f-body);
+  text-align:center;outline:none;
+  transition:border-color 0.3s,box-shadow 0.3s;
+  margin-bottom:12px;
+}
+.campo::placeholder{color:rgba(255,255,255,0.25)}
+.campo:focus{border-color:var(--oro);box-shadow:0 0 14px rgba(212,175,55,0.2)}
 
-        /* ─── UI LAYER ─── */
-        #ui-layer {
-            position: fixed; inset: 0; z-index: 10;
-            display: flex; align-items: center; justify-content: center;
-        }
+/* ── BOTONES POCIONES ── */
+.fila-pociones{display:flex;gap:10px}
+.btn-pocion{
+  flex:1;padding:12px 8px 10px;
+  border-radius:9px;font-family:var(--f-title);
+  font-size:clamp(8pt,2vw,10pt);letter-spacing:1px;
+  cursor:pointer;transition:transform 0.2s,box-shadow 0.35s;
+  border:1px solid transparent;position:relative;overflow:hidden;
+}
+.btn-pocion::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.1) 0%,transparent 50%);
+  pointer-events:none;
+}
+.btn-pocion:hover{transform:translateY(-3px)}
+.btn-pocion:active{transform:scale(0.96)}
 
-        /* ─── PANEL CRISTAL ─── */
-        .panel {
-            background: var(--pergamino);
-            border: 1px solid var(--oro-borde);
-            border-radius: 16px;
-            padding: 38px 40px 34px;
-            width: min(420px, 92vw);
-            text-align: center;
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            box-shadow:
-                0 0 40px rgba(212,175,55,0.12),
-                inset 0 0 30px rgba(212,175,55,0.04);
-            display: none;
-        }
-        .panel.activo { display: block; }
+.btn-nino{
+  background:linear-gradient(145deg,rgba(13,71,161,0.6),rgba(1,28,74,0.4));
+  color:var(--azul);border-color:rgba(79,195,247,0.5);
+}
+.btn-nino:hover{box-shadow:0 0 28px var(--azul-glow),0 0 8px var(--azul-glow) inset}
 
-        /* Ornamento superior */
-        .panel::before {
-            content: '✦ ✦ ✦';
-            display: block;
-            color: var(--oro);
-            font-size: 10pt;
-            letter-spacing: 8px;
-            margin-bottom: 18px;
-            opacity: 0.7;
-        }
+.btn-nina{
+  background:linear-gradient(145deg,rgba(136,14,79,0.6),rgba(74,1,50,0.4));
+  color:var(--rosa);border-color:rgba(240,98,146,0.5);
+}
+.btn-nina:hover{box-shadow:0 0 28px var(--rosa-glow),0 0 8px var(--rosa-glow) inset}
 
-        /* ─── TIPOGRAFÍA ─── */
-        .titulo-ritual {
-            font-size: clamp(15pt, 4vw, 19pt);
-            font-weight: normal;
-            letter-spacing: 2px;
-            color: #f8eecc;
-            margin-bottom: 6px;
-            line-height: 1.4;
-        }
+.icono-btn{font-size:18pt;display:block;margin-bottom:4px}
 
-        .subtitulo {
-            font-size: 9.5pt;
-            color: var(--texto-sub);
-            letter-spacing: 1px;
-            margin-bottom: 26px;
-            font-style: italic;
-        }
+/* ── PANEL ESPERA ── */
+#reloj{
+  font-family:var(--f-display);
+  font-size:clamp(16pt,4vw,22pt);
+  letter-spacing:3px;color:var(--oro2);
+  text-shadow:0 0 25px rgba(212,175,55,0.6);
+  margin:4px 0 10px;
+}
+.barra-wrap{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;display:flex}
+#b-nino{height:100%;background:linear-gradient(90deg,#0d47a1,var(--azul));transition:width 1.5s ease;box-shadow:0 0 6px var(--azul-glow)}
+#b-nina{height:100%;background:linear-gradient(90deg,#880e4f,var(--rosa));transition:width 1.5s ease;box-shadow:0 0 6px var(--rosa-glow)}
+.votos-txt{display:flex;justify-content:space-between;font-size:8pt;margin-top:5px;color:rgba(212,175,55,0.55);font-family:var(--f-title);letter-spacing:1px}
 
-        /* ─── INPUT ─── */
-        .campo-nombre {
-            width: 100%;
-            padding: 13px 16px;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(212,175,55,0.35);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 11pt;
-            font-family: 'Georgia', serif;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            margin-bottom: 28px;
-        }
-        .campo-nombre::placeholder { color: rgba(255,255,255,0.3); }
-        .campo-nombre:focus {
-            border-color: var(--oro);
-            box-shadow: 0 0 12px rgba(212,175,55,0.25);
-        }
+/* ── PANEL REVELACIÓN ── */
+#rev-contenido h1{
+  font-family:var(--f-display);font-size:clamp(20pt,5vw,30pt);
+  font-weight:700;letter-spacing:3px;
+  animation:pulsoBrillo 1.8s ease-in-out infinite alternate;
+}
+#rev-contenido p{font-family:var(--f-body);font-size:11pt;line-height:1.7;color:#c8b898;margin-top:10px;font-style:italic}
+@keyframes pulsoBrillo{from{text-shadow:0 0 20px currentColor}to{text-shadow:0 0 50px currentColor,0 0 100px currentColor}}
 
-        /* ─── BOTONES POCIÓN ─── */
-        .fila-pociones {
-            display: flex; gap: 14px;
-        }
+/* ── HUD ESTADO ── */
+#hud-estado{
+  position:fixed;bottom:0;left:0;right:0;
+  text-align:center;padding:8px;
+  font-family:var(--f-body);font-size:7.5pt;
+  color:rgba(212,175,55,0.3);letter-spacing:2px;
+  font-style:italic;pointer-events:none;z-index:22;
+}
 
-        .boton-pocion {
-            flex: 1;
-            padding: 18px 10px 16px;
-            border-radius: 10px;
-            font-size: 11pt;
-            font-family: 'Georgia', serif;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.3s;
-            border: 1px solid transparent;
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 0.5px;
-        }
-
-        .boton-pocion::after {
-            content: '';
-            position: absolute; inset: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 60%);
-            pointer-events: none;
-        }
-
-        .boton-pocion:active { transform: scale(0.96); }
-
-        .pocion-nino {
-            background: linear-gradient(145deg, rgba(30,80,140,0.55), rgba(20,50,100,0.35));
-            color: var(--azul-nino);
-            border-color: rgba(79,195,247,0.45);
-        }
-        .pocion-nino:hover {
-            box-shadow: 0 0 22px var(--azul-nino-glow), 0 0 6px var(--azul-nino-glow) inset;
-            transform: translateY(-2px);
-        }
-
-        .pocion-nina {
-            background: linear-gradient(145deg, rgba(100,30,120,0.55), rgba(70,20,90,0.35));
-            color: var(--rosa-nina);
-            border-color: rgba(227,145,232,0.45);
-        }
-        .pocion-nina:hover {
-            box-shadow: 0 0 22px var(--rosa-nina-glow), 0 0 6px var(--rosa-nina-glow) inset;
-            transform: translateY(-2px);
-        }
-
-        .icono-pocion {
-            display: block;
-            font-size: 22pt;
-            margin-bottom: 6px;
-        }
-
-        /* ─── PANEL ESPERA ─── */
-        .texto-oraculo {
-            font-size: 10.5pt;
-            color: var(--texto-sub);
-            line-height: 1.8;
-            margin-bottom: 22px;
-            font-style: italic;
-        }
-
-        #reloj-cuenta {
-            font-size: clamp(18pt, 5vw, 26pt);
-            letter-spacing: 3px;
-            color: var(--oro);
-            font-variant-numeric: tabular-nums;
-            text-shadow: 0 0 20px rgba(212,175,55,0.5);
-            margin: 0;
-        }
-
-        .linea-divisora {
-            border: none;
-            border-top: 1px solid var(--oro-borde);
-            margin: 22px 0;
-            opacity: 0.5;
-        }
-
-        /* ─── PANEL REVELACIÓN ─── */
-        #texto-revelacion h1 {
-            font-size: clamp(22pt, 6vw, 34pt);
-            font-weight: normal;
-            letter-spacing: 3px;
-            text-shadow: 0 0 30px currentColor;
-            animation: pulsoTexto 2s ease-in-out infinite alternate;
-        }
-
-        #texto-revelacion p {
-            margin-top: 14px;
-            font-size: 12pt;
-            line-height: 1.7;
-            color: var(--texto-sub);
-            font-style: italic;
-        }
-
-        @keyframes pulsoTexto {
-            from { opacity: 0.85; text-shadow: 0 0 20px currentColor; }
-            to   { opacity: 1;    text-shadow: 0 0 45px currentColor, 0 0 80px currentColor; }
-        }
-
-        /* ─── INDICADOR DE ENERGÍA ─── */
-        #barra-energia-contenedor {
-            margin-top: 20px;
-        }
-
-        .label-energia {
-            font-size: 8pt;
-            letter-spacing: 2px;
-            color: var(--texto-sub);
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-
-        #barra-energia {
-            height: 4px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 2px;
-            overflow: hidden;
-            display: flex;
-        }
-
-        #barra-nino {
-            height: 100%;
-            background: linear-gradient(90deg, #2980b9, var(--azul-nino));
-            transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: 0 0 8px var(--azul-nino-glow);
-        }
-        #barra-nina {
-            height: 100%;
-            background: linear-gradient(90deg, #9b59b6, var(--rosa-nina));
-            transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: 0 0 8px var(--rosa-nina-glow);
-        }
-
-        .texto-recuento {
-            display: flex;
-            justify-content: space-between;
-            font-size: 8.5pt;
-            margin-top: 7px;
-            color: var(--texto-sub);
-            letter-spacing: 1px;
-        }
-
-        /* ─── FADE IN ─── */
-        @keyframes aparecer {
-            from { opacity: 0; transform: translateY(14px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .panel.activo {
-            animation: aparecer 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
-        }
-
-        /* ─── CURSOR MÁGICO ─── */
-        body { cursor: crosshair; }
-    </style>
+/* ── INSTRUCCION VOTACION (flotante sobre caldera) ── */
+#instruccion-caldera{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-90%);
+  z-index:21;text-align:center;pointer-events:none;
+  opacity:1;transition:opacity 1s;
+}
+#instruccion-caldera p{
+  font-family:var(--f-body);font-size:9pt;
+  color:rgba(212,175,55,0.45);letter-spacing:2px;
+  font-style:italic;
+  text-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+</style>
 </head>
 <body>
 
-    <!-- CANVAS THREE.JS -->
-    <div id="canvas-contenedor"></div>
+<canvas id="c3d"></canvas>
 
-    <!-- CANVAS 2D PARA PARTÍCULAS DE ALQUIMIA -->
-    <canvas id="canvas-particulas"></canvas>
+<div id="titulo-superior">
+  <h1>Crónica de un Alma Estelar</h1>
+  <p>El Ritual del Destino</p>
+</div>
 
-    <!-- UI -->
-    <div id="ui-layer">
+<div id="instruccion-caldera">
+  <p>✦ La caldera aguarda tu magia ✦</p>
+</div>
 
-        <!-- PANEL 1: ENTRADA -->
-        <div class="panel activo" id="panel-entrada">
-            <p class="titulo-ritual">El Ritual del Destino</p>
-            <p class="subtitulo">Vierte tu magia en el Gran Orbe</p>
-            <input
-                type="text"
-                id="nombre-familiar"
-                class="campo-nombre"
-                placeholder="Inscribe tu nombre mágico"
-                maxlength="30"
-                autocomplete="off"
-            >
-            <div class="fila-pociones">
-                <button class="boton-pocion pocion-nino" onclick="realizarVoto('nino', this)">
-                    <span class="icono-pocion">🌊</span>
-                    Poción<br>del Guardián
-                </button>
-                <button class="boton-pocion pocion-nina" onclick="realizarVoto('nina', this)">
-                    <span class="icono-pocion">🌸</span>
-                    Poción<br>de la Protectora
-                </button>
-            </div>
-        </div>
+<div id="ui">
 
-        <!-- PANEL 2: ESPERA CON CUENTA ATRÁS -->
-        <div class="panel" id="panel-espera">
-            <p class="titulo-ritual">Tu magia ha sido vertida</p>
-            <p class="texto-oraculo">
-                El orbe acumula la energía de la familia.<br>
-                La gran revelación ocurrirá en:
-            </p>
-            <div id="reloj-cuenta">Invocando oráculo…</div>
+  <!-- PANEL 1: ENTRADA -->
+  <div class="panel activo" id="panel-entrada">
+    <p class="panel-titulo">El Ritual del Destino</p>
+    <p class="panel-sub">Inscribe tu nombre e invoca tu poción</p>
+    <input type="text" id="nombre" class="campo" placeholder="Tu nombre mágico" maxlength="28" autocomplete="off">
+    <div class="fila-pociones">
+      <button class="btn-pocion btn-nino" onclick="votar('nino',this)">
+        <span class="icono-btn">🌊</span>Guardián Estelar
+      </button>
+      <button class="btn-pocion btn-nina" onclick="votar('nina',this)">
+        <span class="icono-btn">🌸</span>Protectora Cósmica
+      </button>
+    </div>
+  </div>
 
-            <hr class="linea-divisora">
+  <!-- PANEL 2: ESPERA -->
+  <div class="panel" id="panel-espera">
+    <p class="panel-titulo">Tu magia fue vertida</p>
+    <p class="panel-sub">La revelación ocurrirá en:</p>
+    <div id="reloj">Invocando…</div>
+    <hr class="separador">
+    <div class="barra-wrap"><div id="b-nino" style="width:50%"></div><div id="b-nina" style="width:50%"></div></div>
+    <div class="votos-txt"><span id="vt-nino">🌊 0</span><span id="vt-nina">0 🌸</span></div>
+    <div id="rev-contenido" style="display:none;margin-top:14px"></div>
+  </div>
 
-            <div id="barra-energia-contenedor">
-                <p class="label-energia">Energía acumulada</p>
-                <div id="barra-energia">
-                    <div id="barra-nino" style="width: 50%"></div>
-                    <div id="barra-nina" style="width: 50%"></div>
-                </div>
-                <div class="texto-recuento">
-                    <span id="texto-nino">🌊 0</span>
-                    <span id="texto-nina">0 🌸</span>
-                </div>
-            </div>
+</div>
 
-            <!-- Panel revelación embebido aquí -->
-            <div id="texto-revelacion" style="display:none; margin-top: 20px;"></div>
-        </div>
-
-    </div><!-- /ui-layer -->
-
+<div id="hud-estado">Portal Estelar · Firebase Realtime · WebGL</div>
 
 <script>
-/* ════════════════════════════════════════════════════════
-   0. FIREBASE
-════════════════════════════════════════════════════════ */
-const firebaseConfig = {
-    apiKey:      "AIzaSyAivQlUAXmdyMgO-7TWrHeLQQlRyqg_JrU",
-    authDomain:  "cronica-de-un-alma-estelar.firebaseapp.com",
-    databaseURL: "https://cronica-de-un-alma-estelar-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId:   "cronica-de-un-alma-estelar",
-    storageBucket: "cronica-de-un-alma-estelar.firebasestorage.app",
-};
-firebase.initializeApp(firebaseConfig);
+/* ══════════════════════════════════════════════════════
+   FIREBASE
+══════════════════════════════════════════════════════ */
+firebase.initializeApp({
+  apiKey:"AIzaSyAivQlUAXmdyMgO-7TWrHeLQQlRyqg_JrU",
+  authDomain:"cronica-de-un-alma-estelar.firebaseapp.com",
+  databaseURL:"https://cronica-de-un-alma-estelar-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"cronica-de-un-alma-estelar",
+  storageBucket:"cronica-de-un-alma-estelar.firebasestorage.app",
+});
 const db = firebase.database();
 
+/* ══════════════════════════════════════════════════════
+   GLOBALS
+══════════════════════════════════════════════════════ */
+const W = ()=>window.innerWidth, H = ()=>window.innerHeight;
+let renderer, scene, camera, clock;
+let mouse = {x:0,y:0}, mouseT = {x:0,y:0};
 
-/* ════════════════════════════════════════════════════════
-   1. THREE.JS — ESCENA PRINCIPAL
-════════════════════════════════════════════════════════ */
-let escena, camara, renderizador;
-let planoCielo, orbeMesh, aniloParticulas;
-let mouse = { x: 0, y: 0 };
-let mouseTarget = { x: 0, y: 0 };
-const PROF_MAX = 0.04; // parallax strength
+// Objetos 3D
+let nebulaSystem, starField, starField2;
+let caldron, caldronLiquid, caldronGlow, caldronRunes=[];
+let bottle, bottleLiquid;
+let smokeParticles, sparkParticles, liquidStream;
+let ambientLight, pointLight1, pointLight2, caldronLight;
 
-// Colores del orbe
-let orbeColorActual = new THREE.Color(0.22, 0.15, 0.32);
-let orbeColorMeta   = new THREE.Color(0.22, 0.15, 0.32);
+// Estado
+let bottleState = 'idle'; // idle | pouring | done
+let currentColor = new THREE.Color(0.18, 0.10, 0.28);
+let targetColor  = new THREE.Color(0.18, 0.10, 0.28);
+let pourProgress = 0;
+let pourType = null;
+let revealDone = false;
+let t0 = performance.now();
 
-// Partículas de fondo (polvo de estrellas)
-let polvoPuntos;
+// Partícula pools
+const smokePool = [];
+const sparkPool = [];
+const streamPool = [];
+const cosmicPool = [];
 
-function iniciarUniverso() {
-    const cont = document.getElementById('canvas-contenedor');
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+function init(){
+  const canvas = document.getElementById('c3d');
+  renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(W(),H());
+  renderer.setClearColor(0x050308);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
 
-    escena  = new THREE.Scene();
-    camara  = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1000);
-    camara.position.z = 5;
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x050308, 0.018);
 
-    renderizador = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderizador.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderizador.setSize(innerWidth, innerHeight);
-    renderizador.setClearColor(0x050308);
-    cont.appendChild(renderizador.domElement);
+  camera = new THREE.PerspectiveCamera(60, W()/H(), 0.1, 300);
+  camera.position.set(0, 2, 14);
+  camera.lookAt(0, 0, 0);
 
-    crearFondoIlustracion();
-    crearPolvoEstrellas();
-    crearOrbe();
-    crearAnilloParticulas();
+  clock = new THREE.Clock();
 
-    window.addEventListener('resize', enRedimension);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('deviceorientation', onGiro);
+  buildLights();
+  buildNebula();
+  buildStarField();
+  buildCaldron();
+  buildBottle();
+  buildSmokeSystem();
+  buildSparkSystem();
+  buildStreamSystem();
+  buildCosmicDust();
 
-    animarEscena();
+  window.addEventListener('resize', onResize);
+  window.addEventListener('mousemove', e=>{
+    mouseT.x = (e.clientX/W()-0.5)*2;
+    mouseT.y = -(e.clientY/H()-0.5)*2;
+  });
+  window.addEventListener('deviceorientation', e=>{
+    if(e.gamma!=null){ mouseT.x=(e.gamma||0)/35; mouseT.y=-(e.beta-45)/50; }
+  });
+
+  loop();
 }
 
-/* ─── FONDO: ILUSTRACIÓN CON PARALLAX ─── */
-const vertexShaderParallax = `
-    varying vec2 vUv;
-    void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
+/* ══════════════════════════════════════════════════════
+   LIGHTS
+══════════════════════════════════════════════════════ */
+function buildLights(){
+  scene.add(new THREE.AmbientLight(0x1a0f2e, 0.8));
+
+  // Luz cósmica tenue desde arriba
+  const top = new THREE.DirectionalLight(0x3d2a6e, 0.6);
+  top.position.set(0, 20, 5);
+  scene.add(top);
+
+  // Luz de la caldera (dinámica)
+  caldronLight = new THREE.PointLight(0x6a2d8e, 3.5, 18);
+  caldronLight.position.set(0, 0.5, 0);
+  caldronLight.castShadow = true;
+  scene.add(caldronLight);
+
+  // Rim lights laterales
+  pointLight1 = new THREE.PointLight(0x1a237e, 1.2, 20);
+  pointLight1.position.set(-8, 3, 2);
+  scene.add(pointLight1);
+
+  pointLight2 = new THREE.PointLight(0x4a148c, 1.2, 20);
+  pointLight2.position.set(8, 3, 2);
+  scene.add(pointLight2);
+}
+
+/* ══════════════════════════════════════════════════════
+   NEBULA BACKGROUND — shader volumétrico
+══════════════════════════════════════════════════════ */
+const nebVert = `
+varying vec2 vUv;
+void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }
+`;
+const nebFrag = `
+uniform float uT;
+uniform vec2  uMouse;
+varying vec2  vUv;
+
+float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5); }
+float noise(vec2 p){
+  vec2 i=floor(p); vec2 f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),
+             mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
+}
+float fbm(vec2 p){
+  float v=0.; float a=0.5;
+  for(int i=0;i<6;i++){ v+=a*noise(p); p=p*2.1+vec2(1.7,9.2); a*=0.5; }
+  return v;
+}
+
+void main(){
+  vec2 uv = vUv - 0.5;
+  uv += uMouse * 0.012;
+  float f1 = fbm(uv*2.2 + uT*0.04);
+  float f2 = fbm(uv*3.5 - uT*0.03 + vec2(f1));
+  float f3 = fbm(uv*1.8 + vec2(f2*0.8, f1*0.6) + uT*0.025);
+
+  // Nebulosas de color: violeta profundo, azul índigo, magenta oscuro
+  vec3 c1 = vec3(0.18, 0.04, 0.38); // violeta
+  vec3 c2 = vec3(0.04, 0.08, 0.35); // indigo
+  vec3 c3 = vec3(0.30, 0.03, 0.22); // magenta
+  vec3 c4 = vec3(0.01, 0.02, 0.08); // void
+
+  vec3 col = mix(c4, c1, smoothstep(0.3, 0.7, f1));
+  col = mix(col, c2, smoothstep(0.4, 0.8, f2)*0.7);
+  col = mix(col, c3, smoothstep(0.5, 0.9, f3)*0.5);
+
+  // Viñeta
+  float d = length(vUv-0.5);
+  col *= 1. - smoothstep(0.3, 0.9, d)*0.85;
+
+  // Brillo central suave
+  float glow = exp(-d*d*6.)*0.4*sin(uT*0.5+1.)*0.5+0.5;
+  col += vec3(0.12,0.05,0.22)*glow;
+
+  gl_FragColor = vec4(col, 1.);
+}
 `;
 
-const fragmentShaderParallax = `
-    uniform sampler2D uTextura;
-    uniform vec2      uMouse;
-    uniform float     uTiempo;
-    varying vec2      vUv;
+function buildNebula(){
+  const geo = new THREE.PlaneGeometry(200, 120);
+  const mat = new THREE.ShaderMaterial({
+    uniforms:{ uT:{value:0}, uMouse:{value:new THREE.Vector2()} },
+    vertexShader: nebVert, fragmentShader: nebFrag
+  });
+  nebulaSystem = new THREE.Mesh(geo, mat);
+  nebulaSystem.position.z = -40;
+  scene.add(nebulaSystem);
+}
 
-    // Ruido suave para efecto niebla sutil
-    float hash(vec2 p) {
-        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+/* ══════════════════════════════════════════════════════
+   STAR FIELDS — dos capas de profundidad
+══════════════════════════════════════════════════════ */
+function makeStars(n, spread, size, opacity){
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(n*3);
+  for(let i=0;i<n*3;i++) pos[i]=(Math.random()-0.5)*spread;
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const mat = new THREE.PointsMaterial({color:0xfff8e7,size,sizeAttenuation:true,transparent:true,opacity});
+  return new THREE.Points(geo,mat);
+}
+function buildStarField(){
+  starField  = makeStars(2000, 180, 0.08, 0.9);
+  starField2 = makeStars(800,  120, 0.18, 0.6);
+  scene.add(starField);
+  scene.add(starField2);
+}
+
+/* ══════════════════════════════════════════════════════
+   CALDRON 3D — OBJETO PRINCIPAL
+══════════════════════════════════════════════════════ */
+function buildCaldron(){
+  caldron = new THREE.Group();
+  caldron.position.set(0, -1.5, 0);
+
+  // ── Cuerpo principal (toroide + cilindro compuesto) ──
+  // Base esférica aplanada
+  const bodyGeo = new THREE.SphereGeometry(2.2, 48, 32, 0, Math.PI*2, 0, Math.PI*0.72);
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color:0x1a1018, metalness:0.7, roughness:0.5,
+    envMapIntensity:0.8
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.rotation.x = Math.PI; // vuelta para que abra arriba
+  body.castShadow = true;
+  caldron.add(body);
+
+  // Borde superior (torus)
+  const rimGeo = new THREE.TorusGeometry(2.22, 0.13, 16, 80);
+  const rimMat = new THREE.MeshStandardMaterial({
+    color:0x4a3a10, metalness:0.9, roughness:0.2,
+    emissive:0x1a0f00, emissiveIntensity:0.3
+  });
+  const rim = new THREE.Mesh(rimGeo, rimMat);
+  rim.position.y = 0.05;
+  caldron.add(rim);
+
+  // Patas (3 patas)
+  for(let i=0;i<3;i++){
+    const ang = (i/3)*Math.PI*2;
+    const legGeo = new THREE.CylinderGeometry(0.09, 0.14, 1.2, 8);
+    const legMat = new THREE.MeshStandardMaterial({color:0x0f0c14,metalness:0.8,roughness:0.4});
+    const leg = new THREE.Mesh(legGeo, legMat);
+    leg.position.set(Math.cos(ang)*1.7, -1.0, Math.sin(ang)*1.7);
+    leg.rotation.z = Math.cos(ang)*0.22;
+    leg.rotation.x = Math.sin(ang)*0.22;
+    leg.castShadow = true;
+    caldron.add(leg);
+  }
+
+  // Manijas laterales
+  for(let s of [-1,1]){
+    const hgeo = new THREE.TorusGeometry(0.35, 0.055, 10, 30, Math.PI);
+    const hmat = new THREE.MeshStandardMaterial({color:0x3d2a0a,metalness:0.85,roughness:0.25});
+    const h = new THREE.Mesh(hgeo, hmat);
+    h.position.set(s*2.3, 0.0, 0);
+    h.rotation.z = s * Math.PI/2;
+    caldron.add(h);
+  }
+
+  // ── Grabados rúnicos (torus decorativos) ──
+  for(let i=0;i<3;i++){
+    const rGeo = new THREE.TorusGeometry(2.2 - i*0.25, 0.025, 8, 80);
+    const rMat = new THREE.MeshStandardMaterial({
+      color:0xd4af37, metalness:1, roughness:0.1,
+      emissive:0xd4af37, emissiveIntensity:0.4
+    });
+    const rune = new THREE.Mesh(rGeo, rMat);
+    rune.position.y = -0.4 - i*0.55;
+    rune.rotation.x = Math.PI/2;
+    caldron.add(rune);
+    caldronRunes.push(rune);
+  }
+
+  // Símbolos rúnicos adicionales (pequeños planos con emisión)
+  for(let i=0;i<8;i++){
+    const ang = (i/8)*Math.PI*2;
+    const sGeo = new THREE.PlaneGeometry(0.18, 0.18);
+    const sMat = new THREE.MeshStandardMaterial({
+      color:0xd4af37, emissive:0xd4af37, emissiveIntensity:1.5,
+      transparent:true, opacity:0.7, side:THREE.DoubleSide
+    });
+    const sym = new THREE.Mesh(sGeo, sMat);
+    const r2 = 2.0;
+    sym.position.set(Math.cos(ang)*r2, -0.3, Math.sin(ang)*r2);
+    sym.lookAt(0, -0.3, 0);
+    caldronRunes.push(sym);
+    caldron.add(sym);
+  }
+
+  // ── Líquido interior ──
+  const liqGeo = new THREE.CircleGeometry(2.1, 64);
+  const liqMat = new THREE.MeshStandardMaterial({
+    color:0x2d1050, emissive:0x2d1050, emissiveIntensity:1.5,
+    transparent:true, opacity:0.92, metalness:0.2, roughness:0.1
+  });
+  caldronLiquid = new THREE.Mesh(liqGeo, liqMat);
+  caldronLiquid.rotation.x = -Math.PI/2;
+  caldronLiquid.position.y = 0.0;
+  caldron.add(caldronLiquid);
+
+  // Glow del líquido (sprite circular suave)
+  const glowGeo = new THREE.CircleGeometry(2.5, 64);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color:0x6a2d8e, transparent:true, opacity:0.3, side:THREE.DoubleSide
+  });
+  caldronGlow = new THREE.Mesh(glowGeo, glowMat);
+  caldronGlow.rotation.x = -Math.PI/2;
+  caldronGlow.position.y = 0.05;
+  caldron.add(caldronGlow);
+
+  scene.add(caldron);
+
+  // Plano de suelo para sombra
+  const floorGeo = new THREE.PlaneGeometry(30, 30);
+  const floorMat = new THREE.ShadowMaterial({opacity:0.5});
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI/2;
+  floor.position.y = -2.6;
+  floor.receiveShadow = true;
+  scene.add(floor);
+}
+
+/* ══════════════════════════════════════════════════════
+   FRASCO 3D — baja y vierte
+══════════════════════════════════════════════════════ */
+function buildBottle(){
+  bottle = new THREE.Group();
+
+  // Cuerpo del frasco (cilindro con cuello)
+  const bodyGeo = new THREE.CylinderGeometry(0.32, 0.38, 1.1, 24);
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color:0x8ecae6, transparent:true, opacity:0.35,
+    metalness:0.1, roughness:0.05,
+    side:THREE.DoubleSide
+  });
+  const bBody = new THREE.Mesh(bodyGeo, bodyMat);
+  bBody.castShadow = true;
+  bottle.add(bBody);
+
+  // Cuello
+  const neckGeo = new THREE.CylinderGeometry(0.13, 0.28, 0.45, 20);
+  const neck = new THREE.Mesh(neckGeo, bodyMat);
+  neck.position.y = 0.77;
+  bottle.add(neck);
+
+  // Tapón
+  const capGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.22, 16);
+  const capMat = new THREE.MeshStandardMaterial({color:0x4a3a10,metalness:0.9,roughness:0.2,emissive:0xd4af37,emissiveIntensity:0.5});
+  const cap = new THREE.Mesh(capGeo, capMat);
+  cap.position.y = 1.11;
+  bottle.add(cap);
+
+  // Líquido dentro del frasco
+  const blGeo = new THREE.CylinderGeometry(0.28, 0.33, 0.85, 20);
+  const blMat = new THREE.MeshStandardMaterial({
+    color:0x6a2d8e, emissive:0x6a2d8e, emissiveIntensity:1.8,
+    transparent:true, opacity:0.75
+  });
+  bottleLiquid = new THREE.Mesh(blGeo, blMat);
+  bottleLiquid.position.y = -0.08;
+  bottle.add(bottleLiquid);
+
+  // Decoración: espiral dorada alrededor
+  for(let i=0;i<20;i++){
+    const ang = (i/20)*Math.PI*6;
+    const sGeo = new THREE.SphereGeometry(0.025, 6, 6);
+    const sMat = new THREE.MeshStandardMaterial({color:0xd4af37,emissive:0xd4af37,emissiveIntensity:2});
+    const sp = new THREE.Mesh(sGeo,sMat);
+    const y  = -0.5 + (i/20)*1.0;
+    const r2 = 0.42;
+    sp.position.set(Math.cos(ang)*r2, y, Math.sin(ang)*r2);
+    bottle.add(sp);
+  }
+
+  // Posición inicial: arriba a la derecha, fuera de cámara
+  bottle.position.set(5, 10, 2);
+  bottle.rotation.z = 0;
+  scene.add(bottle);
+}
+
+/* ══════════════════════════════════════════════════════
+   SISTEMAS DE PARTÍCULAS
+══════════════════════════════════════════════════════ */
+
+// ── Humo/vapor de la caldera ──
+function buildSmokeSystem(){
+  const N = 120;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(N*3);
+  const alp = new Float32Array(N);
+  const sz  = new Float32Array(N);
+  for(let i=0;i<N;i++){ pos[i*3]=pos[i*3+1]=pos[i*3+2]=9999; alp[i]=0; sz[i]=0.3; }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+
+  for(let i=0;i<N;i++){
+    smokePool.push({
+      x:0,y:0,z:0, vx:0,vy:0,vz:0,
+      life:0, maxLife:0, size:0, active:false, idx:i
+    });
+  }
+
+  const mat = new THREE.PointsMaterial({
+    color:0x9b7bc4, size:0.55, sizeAttenuation:true,
+    transparent:true, opacity:0.18,
+    depthWrite:false, blending:THREE.AdditiveBlending
+  });
+  smokeParticles = new THREE.Points(geo, mat);
+  smokeParticles.position.y = -1.4;
+  scene.add(smokeParticles);
+}
+
+// ── Chispas mágicas ──
+function buildSparkSystem(){
+  const N = 300;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(N*3);
+  const col = new Float32Array(N*3);
+  for(let i=0;i<N*3;i++){ pos[i]=9999; col[i]=1; }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  for(let i=0;i<N;i++){
+    sparkPool.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,life:0,maxLife:0,active:false,idx:i,r:1,g:1,b:1});
+  }
+  const mat = new THREE.PointsMaterial({
+    size:0.09, sizeAttenuation:true,
+    transparent:true, opacity:0.95,
+    vertexColors:true, depthWrite:false,
+    blending:THREE.AdditiveBlending
+  });
+  sparkParticles = new THREE.Points(geo, mat);
+  scene.add(sparkParticles);
+}
+
+// ── Chorro de líquido (stream) ──
+function buildStreamSystem(){
+  const N = 200;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(N*3);
+  for(let i=0;i<N*3;i++) pos[i]=9999;
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  for(let i=0;i<N;i++){
+    streamPool.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,life:0,maxLife:0,active:false,idx:i});
+  }
+  liquidStream = new THREE.Points(geo, new THREE.PointsMaterial({
+    color:0xd4af37, size:0.11, sizeAttenuation:true,
+    transparent:true, opacity:0.9,
+    depthWrite:false, blending:THREE.AdditiveBlending
+  }));
+  scene.add(liquidStream);
+}
+
+// ── Polvo cósmico de fondo ──
+function buildCosmicDust(){
+  const N = 400;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    pos[i*3]   = (Math.random()-0.5)*60;
+    pos[i*3+1] = (Math.random()-0.5)*35;
+    pos[i*3+2] = -5 + Math.random()*8;
+    cosmicPool.push({idx:i,vy:0.002+Math.random()*0.004,vx:(Math.random()-0.5)*0.001});
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const dust = new THREE.Points(geo,new THREE.PointsMaterial({
+    color:0xd4af37,size:0.055,sizeAttenuation:true,
+    transparent:true,opacity:0.45,depthWrite:false
+  }));
+  scene.add(dust);
+  cosmicPool._geo = geo;
+  cosmicPool._mesh = dust;
+}
+
+/* ══════════════════════════════════════════════════════
+   SPAWN HELPERS
+══════════════════════════════════════════════════════ */
+function spawnSmoke(x,y,z){
+  const p = smokePool.find(p=>!p.active);
+  if(!p) return;
+  p.active=true; p.x=x; p.y=y; p.z=z;
+  p.vx=(Math.random()-0.5)*0.025;
+  p.vy=0.035+Math.random()*0.04;
+  p.vz=(Math.random()-0.5)*0.025;
+  p.maxLife=180+Math.random()*120; p.life=p.maxLife;
+  p.size=0.4+Math.random()*0.5;
+}
+
+function spawnSpark(x,y,z, r,g,b, burst){
+  const p = sparkPool.find(p=>!p.active);
+  if(!p) return;
+  p.active=true; p.x=x; p.y=y; p.z=z;
+  const spd = burst ? 0.18+Math.random()*0.22 : 0.06+Math.random()*0.12;
+  const ang  = Math.random()*Math.PI*2;
+  const elev = (Math.random()-0.3)*Math.PI;
+  p.vx=Math.cos(ang)*Math.cos(elev)*spd;
+  p.vy=Math.sin(elev)*spd + (burst?0.12:0.05);
+  p.vz=Math.sin(ang)*Math.cos(elev)*spd;
+  p.maxLife=40+Math.random()*60; p.life=p.maxLife;
+  p.r=r; p.g=g; p.b=b;
+}
+
+function spawnStreamParticle(sx,sy,sz, tx,ty,tz){
+  const p = streamPool.find(p=>!p.active);
+  if(!p) return;
+  p.active=true;
+  p.x=sx; p.y=sy; p.z=sz;
+  const t=Math.random();
+  p.vx=(tx-sx)*0.04+(Math.random()-0.5)*0.04;
+  p.vy=(ty-sy)*0.04-0.04;
+  p.vz=(tz-sz)*0.04;
+  p.maxLife=35+Math.random()*25; p.life=p.maxLife;
+}
+
+/* ══════════════════════════════════════════════════════
+   ANIMACIÓN DE VERTIDO — orquestada
+══════════════════════════════════════════════════════ */
+let pourAnim = null;
+
+function iniciarVertido(tipo){
+  if(bottleState !== 'idle') return;
+  bottleState = 'pouring';
+  pourType = tipo;
+
+  // Color del líquido según tipo
+  const isNino = tipo==='nino';
+  const col  = isNino ? new THREE.Color(0.08,0.45,0.85) : new THREE.Color(0.85,0.15,0.42);
+  const col2 = isNino ? new THREE.Color(0.12,0.65,1.0)  : new THREE.Color(1.0, 0.25,0.60);
+  targetColor.copy(col);
+
+  bottleLiquid.material.color.copy(col2);
+  bottleLiquid.material.emissive.copy(col2);
+  liquidStream.material.color.copy(col2);
+
+  // Chispas del color correcto
+  const sr=isNino?0.2:1, sg=isNino?0.7:0.2, sb=isNino?1.0:0.6;
+
+  // Fase 1: el frasco baja desde arriba-derecha
+  let phase=0, pf=0;
+  const startX=5, startY=10, startZ=2;
+  const pourX=2.5, pourY=3.8, pourZ=0.5;
+  const caldX=0, caldY=-1.5, caldZ=0;
+
+  pourAnim = setInterval(()=>{
+    pf += 0.012;
+    const ef = easeInOut(Math.min(pf,1));
+
+    if(phase===0){
+      // Fase 0: frasco baja y se coloca sobre la caldera
+      bottle.position.x = lerp(startX, pourX, ef);
+      bottle.position.y = lerp(startY, pourY, ef);
+      bottle.position.z = lerp(startZ, pourZ, ef);
+      bottle.rotation.z = lerp(0, 0, ef);
+      if(pf>=1){ phase=1; pf=0; }
+
+    } else if(phase===1){
+      // Fase 1: frasco se inclina para verter
+      bottle.rotation.z = lerp(0, -1.25, easeInOut(Math.min(pf,1)));
+      bottle.rotation.x = lerp(0,  0.3,  easeInOut(Math.min(pf,1)));
+      if(pf>=1){ phase=2; pf=0; pourProgress=0; }
+
+    } else if(phase===2){
+      // Fase 2: vertido activo
+      pourProgress = Math.min(pourProgress+0.008, 1.0);
+
+      // Generar partículas del stream
+      const bx = bottle.position.x - 0.4;
+      const by = bottle.position.y - 0.3;
+      const bz = bottle.position.z;
+      for(let i=0;i<4;i++) spawnStreamParticle(bx,by,bz, caldX,caldY+0.5,caldZ);
+
+      // Chispas de la caldera durante el vertido
+      if(Math.random()<0.35){
+        const ang=Math.random()*Math.PI*2;
+        spawnSpark(caldX+Math.cos(ang)*1.8, caldY+0.5, caldZ+Math.sin(ang)*1.8, sr,sg,sb,false);
+      }
+
+      // Humo intenso
+      if(Math.random()<0.5){
+        const a2=Math.random()*Math.PI*2;
+        spawnSmoke(caldX+Math.cos(a2)*1.2, caldY+0.2, caldZ+Math.sin(a2)*1.2);
+      }
+
+      // La caldera cambia de color gradualmente
+      caldronLiquid.material.color.lerp(col, 0.03);
+      caldronLiquid.material.emissive.lerp(col, 0.03);
+      caldronGlow.material.color.lerp(col, 0.025);
+      caldronLight.color.lerp(col, 0.025);
+      caldronLight.intensity = 3.5 + Math.sin(Date.now()*0.01)*1.5;
+
+      if(pf>=1){ phase=3; pf=0;
+        // Explosión de chispas masiva
+        for(let i=0;i<120;i++){
+          const ba=Math.random()*Math.PI*2;
+          spawnSpark(caldX+Math.cos(ba)*1.5, caldY+0.8, caldZ+Math.sin(ba)*1.5, sr,sg,sb, true);
+        }
+      }
+
+    } else if(phase===3){
+      // Fase 3: frasco se retira
+      bottle.rotation.z = lerp(-1.25, 0, easeInOut(Math.min(pf,1)));
+      bottle.position.y = lerp(pourY, pourY+0.5, easeInOut(Math.min(pf,1)));
+      if(pf>=1){ phase=4; pf=0; }
+
+    } else if(phase===4){
+      // Fase 4: frasco sube y sale
+      bottle.position.y = lerp(pourY+0.5, startY+5, easeInOut(Math.min(pf,1)));
+      bottle.position.x = lerp(pourX, startX+3, easeInOut(Math.min(pf,1)));
+      if(pf>=1){
+        clearInterval(pourAnim);
+        bottleState='done';
+        bottle.position.set(99,99,99);
+        // Onda expansiva final de chispas
+        for(let i=0;i<80;i++){
+          const ba=Math.random()*Math.PI*2;
+          const bel=(Math.random()-0.5)*Math.PI;
+          spawnSpark(caldX+Math.cos(ba)*1.0,caldY+1.0+Math.sin(bel)*0.5,caldZ+Math.sin(ba)*1.0,sr,sg,sb,true);
+        }
+      }
     }
-    float noise(vec2 p) {
-        vec2 i = floor(p); vec2 f = fract(p);
-        f = f*f*(3.0-2.0*f);
-        return mix(
-            mix(hash(i), hash(i+vec2(1,0)), f.x),
-            mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x),
-            f.y
+  }, 16);
+}
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+function easeInOut(t){ return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+/* ══════════════════════════════════════════════════════
+   MAIN LOOP
+══════════════════════════════════════════════════════ */
+function loop(){
+  requestAnimationFrame(loop);
+  const dt  = clock.getDelta();
+  const now = (performance.now()-t0)/1000;
+
+  // Mouse suavizado
+  mouse.x += (mouseT.x - mouse.x)*0.05;
+  mouse.y += (mouseT.y - mouse.y)*0.05;
+
+  // Cámara: ligero balanceo con mouse
+  camera.position.x += (mouse.x*1.2 - camera.position.x)*0.04;
+  camera.position.y += (mouse.y*0.5 + 2 - camera.position.y)*0.04;
+  camera.lookAt(0, 0, 0);
+
+  // Nebula shader
+  if(nebulaSystem){
+    nebulaSystem.material.uniforms.uT.value = now;
+    nebulaSystem.material.uniforms.uMouse.value.set(mouse.x, mouse.y);
+  }
+
+  // Estrellas — rotación lentísima en capas
+  if(starField)  starField.rotation.y  = now*0.006;
+  if(starField2) starField2.rotation.y = now*0.009;
+  starField.rotation.z  = now*0.002;
+  starField2.rotation.z = -now*0.003;
+
+  // Caldera — latido y oscilación
+  if(caldron){
+    caldron.rotation.y = now*0.18;
+    // Brillo de runas
+    caldronRunes.forEach((r,i)=>{
+      if(r.material && r.material.emissiveIntensity !== undefined){
+        r.material.emissiveIntensity = 0.4 + 0.4*Math.sin(now*1.5+i*0.8);
+      }
+    });
+    // Líquido interior: pulso
+    if(caldronLiquid){
+      caldronLiquid.material.emissiveIntensity = 1.4 + 0.5*Math.sin(now*2.2);
+    }
+    if(caldronGlow){
+      caldronGlow.material.opacity = 0.25 + 0.12*Math.sin(now*1.8);
+    }
+    caldronLight.intensity = 3 + 1.5*Math.sin(now*2.5);
+    currentColor.lerp(targetColor, 0.015);
+    caldronLight.color.copy(currentColor);
+  }
+
+  // Frasco — brillo
+  if(bottleLiquid && bottleState!=='done'){
+    bottleLiquid.material.emissiveIntensity = 1.6 + 0.4*Math.sin(now*3.5);
+  }
+
+  // ── SMOKE UPDATE ──
+  {
+    const pos = smokeParticles.geometry.attributes.position.array;
+    // Spawn continuo de humo de la caldera
+    if(Math.random()<0.3){
+      const a=Math.random()*Math.PI*2;
+      spawnSmoke(Math.cos(a)*1.4,-1.3,Math.sin(a)*1.4);
+    }
+    smokePool.forEach(p=>{
+      if(!p.active) return;
+      p.life--;
+      p.x+=p.vx; p.y+=p.vy; p.z+=p.vz;
+      p.vx*=0.99; p.vy*=0.995; p.vz*=0.99;
+      const pf=p.life/p.maxLife;
+      if(p.life<=0){ p.active=false; pos[p.idx*3]=9999; return; }
+      pos[p.idx*3]=p.x; pos[p.idx*3+1]=p.y; pos[p.idx*3+2]=p.z;
+    });
+    smokeParticles.geometry.attributes.position.needsUpdate=true;
+  }
+
+  // ── SPARKS UPDATE ──
+  {
+    const pos = sparkParticles.geometry.attributes.position.array;
+    const col = sparkParticles.geometry.attributes.color.array;
+    // Spawn continuo de chispas pequeñas de la caldera
+    if(Math.random()<0.25 && bottleState==='idle'){
+      const a=Math.random()*Math.PI*2;
+      spawnSpark(Math.cos(a)*1.9,-1.3+0.2,Math.sin(a)*1.9, 0.83,0.68,0.21,false);
+    }
+    sparkPool.forEach(p=>{
+      if(!p.active) return;
+      p.life--;
+      p.vy -= 0.003; // gravedad
+      p.x+=p.vx; p.y+=p.vy; p.z+=p.vz;
+      p.vx*=0.97; p.vz*=0.97;
+      if(p.life<=0){ p.active=false; pos[p.idx*3]=9999; return; }
+      pos[p.idx*3]=p.x; pos[p.idx*3+1]=p.y; pos[p.idx*3+2]=p.z;
+      const pf=p.life/p.maxLife;
+      col[p.idx*3]=p.r*pf; col[p.idx*3+1]=p.g*pf; col[p.idx*3+2]=p.b*pf;
+    });
+    sparkParticles.geometry.attributes.position.needsUpdate=true;
+    sparkParticles.geometry.attributes.color.needsUpdate=true;
+  }
+
+  // ── STREAM UPDATE ──
+  {
+    const pos = liquidStream.geometry.attributes.position.array;
+    streamPool.forEach(p=>{
+      if(!p.active) return;
+      p.life--;
+      p.x+=p.vx; p.y+=p.vy; p.z+=p.vz;
+      p.vy-=0.006; // arco parabólico
+      if(p.life<=0){ p.active=false; pos[p.idx*3]=9999; return; }
+      pos[p.idx*3]=p.x; pos[p.idx*3+1]=p.y; pos[p.idx*3+2]=p.z;
+    });
+    liquidStream.geometry.attributes.position.needsUpdate=true;
+  }
+
+  // ── COSMIC DUST ──
+  if(cosmicPool._geo){
+    const pos = cosmicPool._geo.attributes.position.array;
+    cosmicPool.forEach(p=>{
+      if(p.idx===undefined || typeof p.vy==='undefined') return;
+      pos[p.idx*3]   += p.vx;
+      pos[p.idx*3+1] += p.vy;
+      // Reiniciar si sale por arriba
+      if(pos[p.idx*3+1] > 18){ pos[p.idx*3+1]=-18; pos[p.idx*3]=(Math.random()-0.5)*60; }
+    });
+    cosmicPool._geo.attributes.position.needsUpdate=true;
+  }
+
+  renderer.render(scene, camera);
+}
+
+/* ══════════════════════════════════════════════════════
+   REVELACIÓN ÉPICA
+══════════════════════════════════════════════════════ */
+function ejecutarRevelacion(sexo){
+  if(revealDone) return;
+  revealDone=true;
+  const isNino = sexo==='nino';
+  const col    = isNino ? new THREE.Color(0.08,0.55,1.0) : new THREE.Color(1.0,0.15,0.5);
+  const hex    = isNino ? '#7ec0ee' : '#f4b4ec';
+  const titulo = isNino ? '¡Es un Niño!' : '¡Es una Niña!';
+  const texto  = isNino
+    ? 'Un pequeño Guardián Estelar viene en camino.<br>Las constelaciones cantan su llegada.'
+    : 'Una pequeña Protectora Cósmica viene en camino.<br>Las estrellas danzan en su honor.';
+
+  // Mostrar texto
+  const rv=document.getElementById('rev-contenido');
+  rv.style.display='block';
+  rv.innerHTML=`<h1 style="color:${hex}">${titulo}</h1><p>${texto}</p>`;
+
+  // Explosión masiva de chispas
+  const sr=isNino?0.2:1, sg=isNino?0.7:0.2, sb=isNino?1.0:0.6;
+  for(let wave=0;wave<8;wave++){
+    setTimeout(()=>{
+      for(let i=0;i<150;i++){
+        const a=Math.random()*Math.PI*2, el=(Math.random()-0.5)*Math.PI;
+        spawnSpark(
+          Math.cos(a)*Math.cos(el)*2.2, -1.5+Math.sin(el)*2.2, Math.sin(a)*Math.cos(el)*2.2,
+          sr,sg,sb,true
         );
-    }
+      }
+    }, wave*250);
+  }
 
-    void main() {
-        // Parallax offset: capas de profundidad
-        vec2 uv = vUv;
-
-        // La gota central se mueve menos (más "lejos"), el fondo más
-        float distCentro = length(uv - 0.5);
-        float profundidad = 1.0 - smoothstep(0.0, 0.45, distCentro); // 1 en centro, 0 en bordes
-
-        // Desplazamiento parallax
-        vec2 despl = uMouse * 0.025 * (1.0 - profundidad * 0.5);
-        uv -= despl;
-
-        // Distorsión de niebla ondulante mínima
-        float n = noise(uv * 3.5 + uTiempo * 0.07) * 0.004;
-        uv += vec2(n, n * 0.6);
-
-        // Pulso de brillo en el centro
-        float brillo = 1.0 + 0.07 * sin(uTiempo * 1.4) * profundidad;
-
-        vec4 color = texture2D(uTextura, uv);
-        color.rgb *= brillo;
-
-        // Viñeta muy suave
-        float vig = smoothstep(0.95, 0.35, distCentro);
-        color.rgb *= mix(0.7, 1.0, vig);
-
-        gl_FragColor = color;
-    }
-`;
-
-function crearFondoIlustracion() {
-    const loader = new THREE.TextureLoader();
-    // La imagen debe estar en la misma carpeta que index.html
-    loader.load(
-        'fondo.png',
-        (tex) => {
-            const ratio = innerWidth / innerHeight;
-            const imgRatio = 2816 / 1536; // dimensiones reales de la imagen
-            let planeW, planeH;
-
-            if (ratio > imgRatio) {
-                planeW = 10 * ratio;
-                planeH = planeW / imgRatio;
-            } else {
-                planeH = 10 / imgRatio;
-                planeW = planeH * imgRatio;
-            }
-            // Asegurar que cubra siempre
-            planeW = Math.max(planeW, 10 * ratio) * 1.05;
-            planeH = Math.max(planeH, 10) * 1.05;
-
-            const geo = new THREE.PlaneGeometry(planeW, planeH, 1, 1);
-            const mat = new THREE.ShaderMaterial({
-                uniforms: {
-                    uTextura: { value: tex },
-                    uMouse:   { value: new THREE.Vector2(0, 0) },
-                    uTiempo:  { value: 0 },
-                },
-                vertexShader:   vertexShaderParallax,
-                fragmentShader: fragmentShaderParallax,
-            });
-
-            planoCielo = new THREE.Mesh(geo, mat);
-            planoCielo.position.z = -4;
-            escena.add(planoCielo);
-        },
-        undefined,
-        () => {
-            // Fallback si la imagen no carga: fondo estrellado puro
-            console.warn('Ilustración no encontrada — asegúrate de que la imagen esté junto al index.html');
-        }
-    );
+  // Cambio de color masivo de caldera y luces
+  targetColor.copy(col);
+  caldronLight.intensity=12;
+  pointLight1.color.copy(col); pointLight1.intensity=4;
+  pointLight2.color.copy(col); pointLight2.intensity=4;
 }
 
-/* ─── POLVO DE ESTRELLAS ─── */
-function crearPolvoEstrellas() {
-    const N = 1200;
-    const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(N * 3);
-    const sizes = new Float32Array(N);
+/* ══════════════════════════════════════════════════════
+   LÓGICA VOTACIÓN & FIREBASE
+══════════════════════════════════════════════════════ */
+function votar(tipo, btn){
+  const nombre=document.getElementById('nombre').value.trim();
+  if(!nombre){
+    const c=document.getElementById('nombre');
+    c.style.borderColor='#c0392b';
+    c.focus();
+    setTimeout(()=>c.style.borderColor='',1200);
+    return;
+  }
+  // Bloquear botones
+  document.querySelectorAll('.btn-pocion').forEach(b=>b.disabled=true);
 
-    for (let i = 0; i < N; i++) {
-        pos[i*3]   = (Math.random() - 0.5) * 20;
-        pos[i*3+1] = (Math.random() - 0.5) * 12;
-        pos[i*3+2] = -3.5 + Math.random() * 1.5;
-        sizes[i]   = Math.random() * 2.5 + 0.5;
-    }
+  // Firebase
+  db.ref('registro_votos').push({familiar:nombre,pocion:tipo,fecha:new Date().toISOString()});
+  db.ref('votos/'+tipo).transaction(v=>(v||0)+1);
+  localStorage.setItem('votoEstelar',tipo);
 
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  // Animación 3D de vertido
+  iniciarVertido(tipo);
+  document.getElementById('instruccion-caldera').style.opacity='0';
 
-    const mat = new THREE.PointsMaterial({
-        color: 0xd4af37,
-        size: 0.04,
-        sizeAttenuation: true,
-        transparent: true,
-        opacity: 0.6,
-    });
-
-    polvoPuntos = new THREE.Points(geo, mat);
-    escena.add(polvoPuntos);
-}
-
-/* ─── ORBE CENTRAL ─── */
-function crearOrbe() {
-    // Geometría interna (glow)
-    const geoGlow = new THREE.SphereGeometry(0.35, 32, 32);
-    const matGlow = new THREE.MeshBasicMaterial({
-        color: 0x3d2a55,
-        transparent: true,
-        opacity: 0.55,
-    });
-    const glowInner = new THREE.Mesh(geoGlow, matGlow);
-
-    // Wireframe orbital
-    const geoWire = new THREE.IcosahedronGeometry(0.52, 1);
-    const matWire = new THREE.MeshBasicMaterial({
-        color: 0xd4af37,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.25,
-    });
-    const wireframe = new THREE.Mesh(geoWire, matWire);
-
-    // Anillo ecuatorial
-    const geoAnillo = new THREE.TorusGeometry(0.62, 0.008, 8, 80);
-    const matAnillo = new THREE.MeshBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.5 });
-    const anillo = new THREE.Mesh(geoAnillo, matAnillo);
-    anillo.rotation.x = Math.PI / 2.5;
-
-    orbeMesh = new THREE.Group();
-    orbeMesh.add(glowInner, wireframe, anillo);
-    orbeMesh.position.set(0, -0.5, -1);
-    escena.add(orbeMesh);
-}
-
-/* ─── ANILLO DE PARTÍCULAS ORBITANDO EL ORBE ─── */
-function crearAnilloParticulas() {
-    const N = 180;
-    const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(N * 3);
-    const angInit = new Float32Array(N);
-    const radio = 0.8;
-
-    for (let i = 0; i < N; i++) {
-        const a = (i / N) * Math.PI * 2;
-        pos[i*3]   = Math.cos(a) * radio;
-        pos[i*3+1] = (Math.random() - 0.5) * 0.25;
-        pos[i*3+2] = Math.sin(a) * radio;
-        angInit[i] = a;
-    }
-
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-
-    const mat = new THREE.PointsMaterial({
-        color: 0xd4af37,
-        size: 0.018,
-        transparent: true,
-        opacity: 0.55,
-    });
-
-    aniloParticulas = new THREE.Points(geo, mat);
-    aniloParticulas.position.copy(orbeMesh.position);
-    aniloParticulas._angInit = angInit;
-    aniloParticulas._N = N;
-    aniloParticulas._radio = radio;
-    escena.add(aniloParticulas);
-}
-
-/* ─── LOOP DE ANIMACIÓN ─── */
-let tiempoInicio = performance.now();
-
-function animarEscena() {
-    requestAnimationFrame(animarEscena);
-
-    const t = (performance.now() - tiempoInicio) / 1000;
-
-    // Suavizado de mouse
-    mouse.x += (mouseTarget.x - mouse.x) * 0.06;
-    mouse.y += (mouseTarget.y - mouse.y) * 0.06;
-
-    // Shader uniforms
-    if (planoCielo) {
-        planoCielo.material.uniforms.uMouse.value.set(mouse.x, mouse.y);
-        planoCielo.material.uniforms.uTiempo.value = t;
-    }
-
-    // Polvo de estrellas: deriva suave
-    if (polvoPuntos) {
-        polvoPuntos.rotation.z = t * 0.015;
-        polvoPuntos.material.opacity = 0.5 + 0.1 * Math.sin(t * 0.7);
-    }
-
-    // Orbe: latido + rotación
-    if (orbeMesh) {
-        const escalaLatido = 1 + 0.03 * Math.sin(t * 2.1);
-        orbeMesh.children[0].scale.setScalar(escalaLatido); // glow
-        orbeMesh.children[1].rotation.x = t * 0.4;
-        orbeMesh.children[1].rotation.y = t * 0.6;
-        orbeMesh.children[2].rotation.z = t * 0.3; // anillo
-
-        // Suavizado de color
-        orbeColorActual.lerp(orbeColorMeta, 0.02);
-        orbeMesh.children[0].material.color.copy(orbeColorActual);
-        orbeMesh.children[1].material.color.copy(orbeColorActual).multiplyScalar(3);
-
-        // Micro-movimiento con mouse
-        orbeMesh.position.x = mouse.x * 0.08;
-        orbeMesh.position.y = -0.5 + mouse.y * 0.06;
-    }
-
-    // Anillo orbital
-    if (aniloParticulas) {
-        const posArr = aniloParticulas.geometry.attributes.position.array;
-        for (let i = 0; i < aniloParticulas._N; i++) {
-            const a = aniloParticulas._angInit[i] + t * 0.4 + i * 0.01;
-            posArr[i*3]   = Math.cos(a) * aniloParticulas._radio + orbeMesh.position.x;
-            posArr[i*3+1] = Math.sin(a * 0.5) * 0.2 - 0.5 + orbeMesh.position.y;
-            posArr[i*3+2] = Math.sin(a) * aniloParticulas._radio - 1;
-        }
-        aniloParticulas.geometry.attributes.position.needsUpdate = true;
-    }
-
-    renderizador.render(escena, camara);
-}
-
-function onMouseMove(e) {
-    mouseTarget.x =  (e.clientX / innerWidth  - 0.5) * 2;
-    mouseTarget.y = -(e.clientY / innerHeight - 0.5) * 2;
-}
-
-function onGiro(e) {
-    if (e.beta == null) return;
-    mouseTarget.x =  (e.gamma || 0) / 30;
-    mouseTarget.y = -(e.beta  - 45)  / 45;
-}
-
-function enRedimension() {
-    camara.aspect = innerWidth / innerHeight;
-    camara.updateProjectionMatrix();
-    renderizador.setSize(innerWidth, innerHeight);
-}
-
-
-/* ════════════════════════════════════════════════════════
-   2. SISTEMA DE PARTÍCULAS ALQUÍMICAS (canvas 2D)
-════════════════════════════════════════════════════════ */
-const cvPart = document.getElementById('canvas-particulas');
-const ctxP   = cvPart.getContext('2d');
-let particulas = [];
-
-function iniciarCanvasParticulas() {
-    cvPart.width  = innerWidth;
-    cvPart.height = innerHeight;
-    window.addEventListener('resize', () => {
-        cvPart.width  = innerWidth;
-        cvPart.height = innerHeight;
-    });
-    animarParticulas();
-}
-
-function animarParticulas() {
-    requestAnimationFrame(animarParticulas);
-    ctxP.clearRect(0, 0, cvPart.width, cvPart.height);
-
-    for (let i = particulas.length - 1; i >= 0; i--) {
-        const p = particulas[i];
-        p.vida -= p.decaimiento;
-        if (p.vida <= 0) { particulas.splice(i, 1); continue; }
-
-        // Gravedad hacia el orbe
-        const ox = cvPart.width  * 0.5 + orbeMesh.position.x * cvPart.width  * 0.065;
-        const oy = cvPart.height * 0.5 - orbeMesh.position.y * cvPart.height * 0.065 + cvPart.height * 0.075;
-        const dx = ox - p.x;
-        const dy = oy - p.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-
-        if (dist > 18) {
-            p.vx += dx / dist * p.atraccion;
-            p.vy += dy / dist * p.atraccion;
-        }
-
-        // Turbulencia
-        p.vx += (Math.random() - 0.5) * 0.35;
-        p.vy += (Math.random() - 0.5) * 0.35;
-        p.vx *= 0.94;
-        p.vy *= 0.94;
-        p.x  += p.vx;
-        p.y  += p.vy;
-
-        // Espiral cuando está cerca
-        if (dist < 60) {
-            const angulo = Math.atan2(dy, dx) + 0.18;
-            p.vx = Math.cos(angulo) * dist * 0.07;
-            p.vy = Math.sin(angulo) * dist * 0.07;
-        }
-
-        // Dibujar
-        const alpha = p.vida;
-        const r     = p.radio * p.vida;
-        ctxP.beginPath();
-        ctxP.arc(p.x, p.y, r, 0, Math.PI * 2);
-        ctxP.fillStyle = p.color.replace('A', alpha.toFixed(2));
-        ctxP.fill();
-
-        // Estela de luz
-        ctxP.beginPath();
-        ctxP.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
-        ctxP.fillStyle = p.colorGlow.replace('A', (alpha * 0.18).toFixed(2));
-        ctxP.fill();
-    }
-}
-
-function emitirParticulas(tipo, botonEl) {
-    // Posición del botón como origen
-    const rect  = botonEl.getBoundingClientRect();
-    const origX = rect.left + rect.width  / 2;
-    const origY = rect.top  + rect.height / 2;
-
-    const esNino = (tipo === 'nino');
-    const colorSolido = esNino ? 'rgba(79,195,247,A)'    : 'rgba(227,145,232,A)';
-    const colorGlow   = esNino ? 'rgba(41,128,185,A)'    : 'rgba(155,89,182,A)';
-
-    const TOTAL = 120;
-
-    for (let i = 0; i < TOTAL; i++) {
-        const angulo = Math.random() * Math.PI * 2;
-        const vel    = Math.random() * 4 + 1.5;
-        particulas.push({
-            x:          origX,
-            y:          origY,
-            vx:         Math.cos(angulo) * vel,
-            vy:         Math.sin(angulo) * vel - 2,
-            radio:      Math.random() * 3.5 + 1.2,
-            vida:       1,
-            decaimiento: Math.random() * 0.006 + 0.003,
-            atraccion:  0.28 + Math.random() * 0.22,
-            color:      colorSolido,
-            colorGlow:  colorGlow,
-        });
-    }
-
-    // Onda extra desde el orbe en la escena 3D
-    pulsarOrbe(tipo);
-}
-
-/* ─── PULSO DEL ORBE AL VOTAR ─── */
-let escalaMeta = 1;
-let escalaActual = 1;
-
-function pulsarOrbe(tipo) {
-    if (tipo === 'nino') {
-        orbeColorMeta.set(0x1a6cba);
-        aniloParticulas.material.color.set(0x4fc3f7);
-    } else {
-        orbeColorMeta.set(0x8e28b0);
-        aniloParticulas.material.color.set(0xe391e8);
-    }
-
-    // Escala del wireframe: crece suave
-    let s = 1.0;
-    const intervalo = setInterval(() => {
-        s += 0.04;
-        if (orbeMesh) orbeMesh.children[1].scale.setScalar(Math.min(s, 1.6));
-        if (s >= 1.6) clearInterval(intervalo);
-    }, 30);
-}
-
-
-/* ════════════════════════════════════════════════════════
-   3. LÓGICA DE VOTACIÓN
-════════════════════════════════════════════════════════ */
-let yaVoto = localStorage.getItem('votoEstelar');
-
-function verificarEstadoVotacion() {
-    if (yaVoto) {
-        mostrarPanelEspera();
-    }
-}
-
-function realizarVoto(tipo, botonEl) {
-    const nombre = document.getElementById('nombre-familiar').value.trim();
-    if (!nombre) {
-        document.getElementById('nombre-familiar').focus();
-        document.getElementById('nombre-familiar').style.borderColor = '#c0392b';
-        setTimeout(() => {
-            document.getElementById('nombre-familiar').style.borderColor = 'rgba(212,175,55,0.35)';
-        }, 1200);
-        return;
-    }
-
-    // Registrar voto
-    db.ref('registro_votos').push({
-        familiar: nombre,
-        pocion:   tipo,
-        fecha:    new Date().toISOString(),
-    });
-    db.ref('votos/' + tipo).transaction(v => (v || 0) + 1);
-
-    localStorage.setItem('votoEstelar', tipo);
-    yaVoto = tipo;
-
-    // Animación alquímica
-    emitirParticulas(tipo, botonEl);
-
-    // Esperar un momento para la transición (el vertido se ve)
-    setTimeout(mostrarPanelEspera, 1400);
-}
-
-function mostrarPanelEspera() {
+  // Transición al panel de espera tras la animación
+  setTimeout(()=>{
     document.getElementById('panel-entrada').classList.remove('activo');
+    document.getElementById('panel-entrada').style.display='none';
     document.getElementById('panel-espera').classList.add('activo');
     escucharVotos();
+  }, 5500);
 }
 
-/* ─── CONTADORES EN TIEMPO REAL ─── */
-function escucharVotos() {
-    db.ref('votos').on('value', (snap) => {
-        const datos = snap.val() || { nino: 0, nina: 0 };
-        const n = datos.nino || 0;
-        const f = datos.nina || 0;
-        const total = n + f;
-
-        const pn = total > 0 ? (n / total * 100) : 50;
-        const pf = 100 - pn;
-
-        document.getElementById('barra-nino').style.width = pn + '%';
-        document.getElementById('barra-nina').style.width = pf + '%';
-        document.getElementById('texto-nino').textContent = `🌊 ${n}`;
-        document.getElementById('texto-nina').textContent = `${f} 🌸`;
-
-        // Orbe crece con el total
-        if (total > 0 && orbeMesh) {
-            const factorEscala = 1 + total * 0.04;
-            orbeMesh.children[0].scale.setScalar(Math.min(factorEscala, 2.2));
-        }
-    });
+function escucharVotos(){
+  db.ref('votos').on('value', snap=>{
+    const d=snap.val()||{nino:0,nina:0};
+    const n=d.nino||0, f=d.nina||0, tot=n+f;
+    const pn=tot>0?(n/tot*100):50, pf=100-pn;
+    document.getElementById('b-nino').style.width=pn+'%';
+    document.getElementById('b-nina').style.width=pf+'%';
+    document.getElementById('vt-nino').textContent='🌊 '+n;
+    document.getElementById('vt-nina').textContent=f+' 🌸';
+  });
 }
 
-
-/* ════════════════════════════════════════════════════════
-   4. RELOJ DE REVELACIÓN
-════════════════════════════════════════════════════════ */
-let secretoRevelado = false;
-
-db.ref('config/revelacion').on('value', (snap) => {
-    const cfg = snap.val();
-    if (!cfg) return;
-    const fechaReveal = new Date(cfg.fechaHoraReveal).getTime();
-    iniciarReloj(fechaReveal, cfg.sexoReal);
+// Reloj
+db.ref('config/revelacion').on('value', snap=>{
+  const cfg=snap.val(); if(!cfg)return;
+  const fecha=new Date(cfg.fechaHoraReveal).getTime();
+  const el=document.getElementById('reloj');
+  const tick=setInterval(()=>{
+    const dist=fecha-Date.now();
+    if(dist<=0){
+      clearInterval(tick);
+      el.textContent='✦ EL PORTAL SE ABRIÓ ✦';
+      ejecutarRevelacion(cfg.sexoReal);
+    } else {
+      const d=Math.floor(dist/86400000);
+      const h=Math.floor((dist%86400000)/3600000);
+      const m=Math.floor((dist%3600000)/60000);
+      const s=Math.floor((dist%60000)/1000);
+      el.textContent=`${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+    }
+  },1000);
 });
 
-function iniciarReloj(fechaReveal, sexoReal) {
-    const el = document.getElementById('reloj-cuenta');
-
-    const tick = setInterval(() => {
-        const distancia = fechaReveal - Date.now();
-
-        if (distancia <= 0) {
-            clearInterval(tick);
-            el.innerHTML = '✦ ¡EL PORTAL SE HA ABIERTO! ✦';
-            if (!secretoRevelado) ejecutarRevelacion(sexoReal);
-        } else {
-            const d = Math.floor(distancia / 86400000);
-            const h = Math.floor((distancia % 86400000) / 3600000);
-            const m = Math.floor((distancia % 3600000)  / 60000);
-            const s = Math.floor((distancia % 60000)    / 1000);
-            el.textContent = `${d}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
-        }
-    }, 1000);
+// Restaurar estado si ya votó
+if(localStorage.getItem('votoEstelar')){
+  window.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('instruccion-caldera').style.opacity='0';
+    document.getElementById('panel-entrada').classList.remove('activo');
+    document.getElementById('panel-entrada').style.display='none';
+    document.getElementById('panel-espera').classList.add('activo');
+    escucharVotos();
+  });
 }
 
-function pad(n) { return String(n).padStart(2, '0'); }
-
-
-/* ════════════════════════════════════════════════════════
-   5. LA GRAN REVELACIÓN
-════════════════════════════════════════════════════════ */
-function ejecutarRevelacion(sexo) {
-    secretoRevelado = true;
-
-    const esNino = (sexo === 'nino');
-    const colorHex   = esNino ? 0x3498db  : 0xe040fb;
-    const colorTexto = esNino ? '#7ec0ee' : '#f4b4ec';
-    const titulo     = esNino ? '¡Es un Niño!' : '¡Es una Niña!';
-    const subtexto   = esNino
-        ? 'Un pequeño Guardián Estelar viene en camino.'
-        : 'Una pequeña Protectora Cósmica viene en camino.';
-
-    // Revelar texto
-    const elRev = document.getElementById('texto-revelacion');
-    elRev.style.display = 'block';
-    elRev.innerHTML = `
-        <h1 style="color:${colorTexto}">${titulo}</h1>
-        <p>${subtexto}</p>
-    `;
-
-    // Explosión del orbe
-    orbeColorMeta.set(colorHex);
-    orbeColorActual.set(colorHex);
-
-    // Expandir wireframe a toda la pantalla
-    let escalaExplosion = 1;
-    const explosionInterval = setInterval(() => {
-        escalaExplosion += 0.8;
-        if (orbeMesh) {
-            orbeMesh.children[0].scale.setScalar(escalaExplosion * 0.6);
-            orbeMesh.children[1].scale.setScalar(escalaExplosion);
-            orbeMesh.children[1].material.opacity = Math.max(0, 0.25 - escalaExplosion * 0.005);
-        }
-        if (escalaExplosion > 60) clearInterval(explosionInterval);
-    }, 30);
-
-    // Lluvia de partículas masiva
-    const centro = {
-        getBoundingClientRect: () => ({
-            left:   innerWidth  * 0.5,
-            top:    innerHeight * 0.5,
-            width:  0,
-            height: 0,
-        })
-    };
-    for (let r = 0; r < 5; r++) {
-        setTimeout(() => emitirParticulasExplosion(sexo), r * 200);
-    }
-}
-
-function emitirParticulasExplosion(tipo) {
-    const esNino = (tipo === 'nino');
-    const colorSolido = esNino ? 'rgba(79,195,247,A)'  : 'rgba(227,145,232,A)';
-    const colorGlow   = esNino ? 'rgba(41,128,185,A)'  : 'rgba(155,89,182,A)';
-
-    for (let i = 0; i < 200; i++) {
-        const angulo = Math.random() * Math.PI * 2;
-        const vel    = Math.random() * 10 + 2;
-        particulas.push({
-            x:          innerWidth  * 0.5,
-            y:          innerHeight * 0.5,
-            vx:         Math.cos(angulo) * vel,
-            vy:         Math.sin(angulo) * vel,
-            radio:      Math.random() * 5 + 1.5,
-            vida:       1,
-            decaimiento: Math.random() * 0.004 + 0.002,
-            atraccion:  0,     // en la explosión no hay gravedad
-            color:      colorSolido,
-            colorGlow:  colorGlow,
-        });
-    }
-}
-
-
-/* ════════════════════════════════════════════════════════
-   6. ARRANQUE
-════════════════════════════════════════════════════════ */
-window.onload = () => {
-    iniciarUniverso();
-    iniciarCanvasParticulas();
-    verificarEstadoVotacion();
-};
+window.addEventListener('load', init);
 </script>
 </body>
 </html>
