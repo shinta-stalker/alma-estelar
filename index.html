@@ -41,7 +41,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
 }
 #vfx{position:fixed;inset:0;z-index:2;pointer-events:none}
 
-/* ═══ INTRO SCREEN (MEJORADO SIN IMAGEN) ═══ */
+/* ═══ INTRO SCREEN ═══ */
 #intro{
   position:fixed;inset:0;z-index:80;
   display:flex;align-items:center;justify-content:center;
@@ -70,7 +70,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
 }
 .perg-parallax{will-change:transform;transition:transform .12s ease-out}
 
-/* Panel de cristal en lugar del pergamino */
+/* Panel de cristal */
 .perg-wrap{
   position:relative;width:min(700px,92vw);
   background:rgba(10,5,20,0.7);
@@ -83,7 +83,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   text-align:center;gap:clamp(12px,2vh,20px);
 }
 
-/* Textos adaptados para brillar en fondo oscuro */
 .perg-runa{
   font-family:'Cinzel',serif;font-size:clamp(14pt,3vw,18pt);
   color:#d4af37;letter-spacing:12px;font-weight:700;
@@ -164,6 +163,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   color:rgba(212,175,55,.8);text-transform:uppercase;margin-bottom:18px;font-weight:bold;
   text-shadow: 0 0 10px rgba(212,175,55,0.4);
 }
+.panel-sub {
+  font-family:'IM Fell English',serif;font-style:italic;font-size:clamp(12pt,2vw,14pt);
+  color:rgba(212,175,55,.9);margin-bottom:15px;
+}
 .campo{
   width:100%;padding:16px 20px;background:rgba(255,255,255,.08);
   border:2px solid rgba(212,175,55,.5);border-radius:12px;
@@ -242,16 +245,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
         <h2 class="perg-titulo">Crónica de un Alma Estelar</h2>
         <p class="perg-div">⋆ ──── ⋆ ──── ⋆</p>
         <p class="perg-cuerpo">
-          En el alba de los tiempos cósmicos<br>
-          una nueva estrella comienza a brillar.<br><br>
-          ¿Traerá la fuerza del <em class="em-nino">Guardián</em><br>
-          o la luz de la <em class="em-nina">Protectora</em>?<br><br>
-          El universo guarda el secreto.<br>
-          <em>Tú</em> tienes el poder de lanzar tu energía.
+          Hemos llegado a un nuevo capítulo en nuestro viaje.<br>
+          La semilla cósmica que comenzó a latir en el silencio,<br>está lista para revelar su misterio.<br><br>
+          ¿Será la fuerza tranquila de un <em class="em-nino">Guardián</em>,<br>
+          o la luz protectora de una <em class="em-nina">Niña de las Estrellas</em>?<br><br>
+          Antes de girar esta página, te invitamos a ser parte del relato.<br>
+          <em>Vierte tu intuición en nuestro oráculo.</em>
         </p>
         <p class="perg-div">⋆ ──── ⋆ ──── ⋆</p>
-        <p class="perg-llamada">Tu magia escribirá el destino eterno.</p>
-        <button class="btn-entrar" onclick="entrar()">✦ &nbsp; Aceptar y Avanzar &nbsp; ✦</button>
+        <p class="perg-llamada">Tu amor escribirá esta parte del destino.</p>
+        <button class="btn-entrar" onclick="entrar()">✦ &nbsp; Firmar el Diario &nbsp; ✦</button>
       </div>
     </div>
   </div>
@@ -264,7 +267,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   </div>
 
   <div class="panel" id="panel-voto">
-    <p class="panel-label">Inscribe tu nombre e invoca tu poción</p>
+    <p class="panel-label">Inscribe tu nombre y elige el eco de tu corazón</p>
     <input type="text" id="nombre" class="campo" placeholder="Tu nombre mágico" maxlength="28" autocomplete="off">
     <div class="pociones-row">
       <button class="pocion-btn azul" id="btn-azul" onclick="lanzarMagia('nino',this)">
@@ -279,7 +282,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030108;font-family:
   </div>
 
   <div class="panel" id="panel-espera" style="display:none">
-    <p class="panel-label">La magia se acumula en el cosmos</p>
+    <p class="panel-label">La Tinta ya está en el Pergamino</p>
+    <p class="panel-sub">Tus deseos se han entrelazado con nuestra historia.<br>La página se revelará ante todos en:</p>
     <div id="reloj">Invocando…</div>
     <div class="barra-wrap"><div id="b-azul" style="width:50%"></div><div id="b-rosa" style="width:50%"></div></div>
     <div class="votos-txt"><span id="vt-azul">🌊 0</span><span id="vt-rosa">0 🌸</span></div>
@@ -783,8 +787,8 @@ function doReveal(sexo){
   const cr=isN?79:244,cg=isN?195:114,cb=isN?247:182;
   const hex=isN?'#7ec0ee':'#f4b4ec';
   const tit=isN?'¡Es un Niño!':'¡Es una Niña!';
-  const txt=isN?'Un pequeño Guardián Estelar viene en camino.<br>Las constelaciones cantan en su honor.':
-                'Una pequeña Protectora Cósmica viene en camino.<br>Las estrellas danzan en su nombre.';
+  const txt=isN?'¡Nuestra historia tiene un Príncipe Cósmico!<br>Un pequeño Guardián Estelar viene en camino para iluminar nuestro universo.':
+                '¡Nuestra historia tiene una Princesa Estelar!<br>Una pequeña Protectora Cósmica viene en camino para llenar nuestro universo de luz.';
 
   document.getElementById('revc').style.display='block';
   document.getElementById('revc').innerHTML=`<h1 style="color:${hex}">${tit}</h1><p>${txt}</p>`;
@@ -823,7 +827,7 @@ db.ref('config/revelacion').on('value',snap=>{
     const d=ft-Date.now();
     if(d<=0){
       clearInterval(iv);
-      el.textContent='✦ EL PORTAL SE ABRIÓ ✦';
+      el.textContent='✦ LA PÁGINA SE HA REVELADO ✦';
       doReveal(cfg.sexoReal);
     }
     else{
