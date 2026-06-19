@@ -283,7 +283,11 @@ function init(){
   buildStreamSystem();
   buildCosmicDust();
 
-  window.addEventListener('resize', onResize);
+  window.addEventListener('resize', ()=>{
+    renderer.setSize(W(), H());
+    camera.aspect = W()/H();
+    camera.updateProjectionMatrix();
+  });
   window.addEventListener('mousemove', e=>{
     mouseT.x = (e.clientX/W()-0.5)*2;
     mouseT.y = -(e.clientY/H()-0.5)*2;
